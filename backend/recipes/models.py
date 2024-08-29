@@ -1,6 +1,5 @@
 from django.db import models
 
-
 # Create your models here.
 class Recipe(models.Model):
     """Модель рецепта."""
@@ -54,11 +53,11 @@ class RecipeIngridient(models.Model):
     """Связанная модель рецепта и ингридиента."""
 
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingridient = models.models.ForeignKey(Ingridient, on_delete=models.CASCADE)
+    ingridient = models.ForeignKey(Ingridient, on_delete=models.CASCADE)
     amount = models.IntegerField()
 
     def __str__(self) -> str:
-        return f'Для приготовления {self.recipe} необходимо {self.amount} {self.ingridient}'
+        return f'{self.amount} {self.ingridient}'
 
 
 class RecipeTag(models.Model):
