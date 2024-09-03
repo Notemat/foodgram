@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 
-from djoser.views import TokenCreateViewSet
+from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
@@ -14,12 +14,12 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from users.forms import UserRegistrationForm
 from users.serializers import (
-    CustomTokenSerializer, RegisterDataSerializer, CustomUserSerializer
+    CustomTokenCreateSerializer, RegisterDataSerializer, CustomUserSerializer
 )
 from users.models import User
 
 
-class CustomUserViewSet(NotAllowedPutMixin, viewsets.ModelViewSet):
+class CustomUserViewSet(viewsets.ModelViewSet):
     """Вью-класс для пользователей."""
 
     queryset = User.objects.all()
@@ -27,7 +27,7 @@ class CustomUserViewSet(NotAllowedPutMixin, viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
-    permission_classes = (IsAuthenticated, IsAdminPermission,)
+    permission_classes = (IsAuthenticated,)
     lookup_field = 'username'
     user_form = UserRegistrationForm()
 
@@ -48,8 +48,7 @@ class CustomUserViewSet(NotAllowedPutMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CustomTokenViewSet(TokenCreateViewSet):
+class CustomTokenViewSet(UserViewSet):
     """Вьюсет для токена."""
 
-    queryset = User.objects.all()
-    serializer_class = CustomTokenSerializer
+    serializer_class = CustomTokenCreateSerializer

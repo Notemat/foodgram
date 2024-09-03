@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from djoser.serializers import TokenCreateSerializer
 from rest_framework import serializers
 
+from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
 
