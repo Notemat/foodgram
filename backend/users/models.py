@@ -11,6 +11,10 @@ class User(AbstractUser):
         upload_to='users/avatars/', null=True, default=None
     )
 
+    EMAIL_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
