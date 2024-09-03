@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from users.forms import UserRegistrationForm
 from users.serializers import (
-    CustomTokenCreateSerializer, RegisterDataSerializer, CustomUserSerializer
+    CustomTokenCreateSerializer, CustomUserSerializer
 )
 from users.models import User
 
