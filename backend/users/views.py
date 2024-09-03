@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.serializers import (
-    CustomTokenCreateSerializer, CustomUserSerializer
+    CustomTokenObtainPairSerializer, CustomUserSerializer
 )
 from users.models import User
 
@@ -32,4 +32,4 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class CustomTokenPairView(TokenObtainPairView):
     """Вьюсет для токена."""
 
-    serializer_class = CustomTokenCreateSerializer
+    serializer_class = CustomTokenObtainPairSerializer

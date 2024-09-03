@@ -2,23 +2,34 @@ from django.core.exceptions import ValidationError
 
 from djoser.serializers import TokenCreateSerializer
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
 
-class CustomTokenCreateSerializer(TokenObtainPairSerializer):
-    """Сериализатор для токена."""
+class EmailTokenObtainSerializer(TokenObtainSerializer):
+    """Сериализатор переопределяющий поле username для токена."""
+    username_field = User.EMAIL_FIELD
+
+
+class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
+    """Сериализатор для получения токена."""
+
+    @classmethod
+    def get_token(cls, user):
+        return RefreshToken.for_user(user)
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-        user = User.objects.filter(email=email).first()
-        if user is None or not user.check_password(password):
-            raise serializers.ValidationError('Неверный email или пароль.')
-        attrs['username'] = user.username
-        return super().validate(attrs)
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+
+        return data
 
 
 class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
