@@ -12,8 +12,12 @@ class CustomTokenCreateSerializer(TokenObtainPairSerializer):
     """Сериализатор для токена."""
 
     def validate(self, attrs):
-        username = User.objects.filter(email=attrs['email']).first().username
-        attrs['username'] = username
+        email = attrs.get('email')
+        password = attrs.get('password')
+        user = User.objects.filter(email=email).first()
+        if user is None or not user.check_password(password):
+            raise serializers.ValidationError('Неверный email или пароль.')
+        attrs['username'] = user.username
         return super().validate(attrs)
 
 
