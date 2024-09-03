@@ -13,6 +13,9 @@ class EmailTokenObtainSerializer(TokenObtainSerializer):
     """Сериализатор переопределяющий поле username для токена."""
     username_field = User.EMAIL_FIELD
 
+    class Meta:
+        model = User
+
 
 class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
     """Сериализатор для получения токена."""
@@ -35,7 +38,9 @@ class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
 class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
 
-    username = serializers.CharField(max_length=256)
+    username = serializers.CharField(max_length=256, required=True)
+    first_name = serializers.CharField(max_length=150, required=True)
+    last_name = serializers.CharField(max_length=150, required=True)
 
     class Meta:
         fields = (
@@ -52,46 +57,3 @@ class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
         if User.objects.filter(username=value).exists():
             raise ValidationError('Данный username уже используется.')
         return super().validate_username(value)
-
-
-# class RegisterDataSerializer(
-#     ValidateUsernameMixin, ValidateEmailMixin, serializers.ModelSerializer
-# ):
-#     """Сериализатор для данных регистрации."""
-
-#     email = serializers.EmailField(max_length=256)
-#     username = serializers.CharField(max_length=256)
-
-#     class Meta:
-#         model = User
-#         fields = ('username', 'email')
-
-#     def validate(self, data):
-#         """Проверка уникальности email и username."""
-#         email = data.get('email')
-#         username = data.get('username')
-
-#         if User.objects.filter(username=username, email=email).exists():
-#             return data
-
-#         if User.objects.filter(email=email).exists():
-#             raise serializers.ValidationError(
-#                 'Этот email уже используется под другим username.'
-#             )
-
-#         if User.objects.filter(username=username).exists():
-#             raise serializers.ValidationError(
-#                 'Имя пользователя используется под другим email.'
-#             )
-
-#         return data
-
-    # def create(self, validated_data):
-    #     """Создание или получение пользователя."""
-
-    #     user, created = User.objects.get_or_create(
-    #         username=validated_data['username'],
-    #         email=validated_data['email']
-    #     )
-
-    #     return user
