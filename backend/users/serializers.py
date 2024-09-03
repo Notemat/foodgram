@@ -2,29 +2,33 @@ from django.core.exceptions import ValidationError
 
 from djoser.serializers import TokenCreateSerializer
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
 
-class CustomTokenCreateSerializer(ValidateEmailMixin, TokenCreateSerializer):
+class CustomTokenCreateSerializer(TokenObtainPairSerializer):
     """Сериализатор для токена."""
 
-    class Meta:
-        fields = ('password', 'email')
-        model = User
+    def validate(self, attrs):
+        username = User.objects.filter(email=attrs['email']).first().username
+        attrs['username'] = username
+        return super().validate(attrs)
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
 
     username = serializers.CharField(max_length=256)
 
     class Meta:
         fields = (
-            'email', 'username', 'first_name',
-            'last_name', 'avatar', 'is_subscribed'
+            'email', 'username', 'password', 'first_name', 'last_name'
         )
+        extra_kwargs = {
+            'is_subscribed': {'read_only': True},
+        }
         model = User
 
     def validate_username(self, value):

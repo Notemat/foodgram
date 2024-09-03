@@ -5,17 +5,11 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     """Модель пользователя."""
 
-    # USER = 'user'
-    # ADMIN = 'admin'
-    # USER_ROLE = [
-    #     (USER, 'Пользователь'),
-    #     (ADMIN, 'Администратор')
-    # ]
 
     username = models.CharField(max_length=256, unique=True)  # add validators
     email = models.EmailField('Электронная почта', max_length=256, unique=True)
     avatar = models.ImageField(
-        upload_to='users/image.png', null=True, default=None
+        upload_to='users/avatars/', null=True, default=None
     )
 
     class Meta:
