@@ -4,10 +4,11 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (IsAuthenticated, IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (IsAuthenticated, )
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from users.permissions import PostOrReadOnly
 from users.serializers import (
     AvatarSerializer, CustomTokenObtainPairSerializer,
     CustomUserSerializer, RegisterDataSerializer
@@ -21,7 +22,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (PostOrReadOnly,)
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
     lookup_field = 'username'

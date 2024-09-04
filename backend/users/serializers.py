@@ -57,7 +57,9 @@ class AvatarSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
 
-    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH, required=True)
+    username = serializers.CharField(
+        max_length=USERNAME_MAX_LENGTH, required=True
+    )
     avatar = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
