@@ -50,6 +50,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     )
     def register(self, request):
         """Регистрация пользователя."""
+        print('metood register')
         serializer = RegisterDataSerializer
         if serializer.is_valid():
             user = serializer.save()

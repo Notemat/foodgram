@@ -91,6 +91,7 @@ class RegisterDataSerializer(
         """Проверка уникальности email и username."""
         email = data.get('email')
         username = data.get('username')
+        print('metod validate')
 
         if User.objects.filter(username=username, email=email).exists():
             return data
@@ -110,6 +111,9 @@ class RegisterDataSerializer(
     def create(self, validated_data):
         """Создание или получение пользователя."""
 
+        password = validated_data.pop('password')
+        print('metod create')
+
         user, created = User.objects.get_or_create(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -117,5 +121,11 @@ class RegisterDataSerializer(
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name')
         )
+        if created:
+            print('User created')
+            user.set_password(password)
+            user.save()
+        else:
+            print('not created')
 
         return user
