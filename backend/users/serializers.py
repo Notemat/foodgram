@@ -2,19 +2,16 @@ from django.core.exceptions import ValidationError
 
 from djoser.serializers import TokenCreateSerializer
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
 
-class EmailTokenObtainSerializer(TokenObtainSerializer):
+class EmailTokenObtainSerializer(TokenObtainPairSerializer):
     """Сериализатор переопределяющий поле username для токена."""
     username_field = User.EMAIL_FIELD
-
-    class Meta:
-        model = User
 
 
 class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
@@ -25,7 +22,9 @@ class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
         return RefreshToken.for_user(user)
 
     def validate(self, attrs):
+
         data = super().validate(attrs)
+        print(data)
 
         refresh = self.get_token(self.user)
 

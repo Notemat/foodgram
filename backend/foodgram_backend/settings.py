@@ -134,12 +134,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 6,
 }
 
-# DJOSER = {
-#     'LOGIN_FIELD': 'email',
-#     'SERIALIZERS': {
-#         'token_create': 'users.serializers.CustomTokenObtainPairSerializer',
-#     },
-# }
+DJOSER = {
+    'USER_ID_FIELD': 'email',
+    'LOGIN_FIELD': 'email',
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(weeks=5),

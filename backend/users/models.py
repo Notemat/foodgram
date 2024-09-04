@@ -5,12 +5,11 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     """Модель пользователя."""
 
-    username = models.CharField(max_length=256, unique=True)  # add validators
+    username = models.CharField(max_length=256, unique=True)
     email = models.EmailField('Электронная почта', max_length=256, unique=True)
     avatar = models.ImageField(
         upload_to='users/avatars/', null=True, default=None
     )
-
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
