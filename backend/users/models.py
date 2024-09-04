@@ -8,7 +8,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=256, unique=True)
     email = models.EmailField('Электронная почта', max_length=256, unique=True)
     avatar = models.ImageField(
-        upload_to='users/avatars/', null=True, default=None
+        upload_to='users/avatars/', null=False, default=None
     )
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'

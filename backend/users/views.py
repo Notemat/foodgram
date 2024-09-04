@@ -1,19 +1,16 @@
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated,)
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.serializers import (
-    CustomTokenObtainPairSerializer, CustomUserSerializer, RegisterDataSerializer
+    AvatarSerializer, CustomTokenObtainPairSerializer,
+    CustomUserSerializer, RegisterDataSerializer
 )
 from users.models import User
 
@@ -45,20 +42,45 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
-        methods=['POST'],
+        methods=['PUT', 'DELETE'],
         detail=False,
+        permission_classes=[IsAuthenticated, ],
+        url_path='me/avatar'
     )
-    def register(self, request):
-        """Регистрация пользователя."""
-        print('metood register')
-        serializer = RegisterDataSerializer
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
+    def manage_avatar(self, request):
+        """Обновление и удаление аватара."""
+        user = request.user
+        if request.method == 'PUT':
+            serializer = AvatarSerializer(
+                user, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'DELETE':
+            user.avatar.delete(save=True)
+            return Response(
+                {'message': 'Аватар удалён.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+    def create(self, request, *args, **kwargs):
+        """
+        Переопределение метода создания пользователя
+        для использования сериализатора регистрации.
+        """
+
+        serializer = RegisterDataSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        return Response(
+            {
                 'user': CustomUserSerializer(user).data,
                 'message': 'Пользователь успешно создан.'
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 
 class CustomTokenPairView(TokenObtainPairView):

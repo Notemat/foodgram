@@ -1,9 +1,7 @@
 import base64
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.contrib.auth import get_user_model
 
-from djoser.serializers import TokenCreateSerializer
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -17,9 +15,10 @@ class Base64ImageField(serializers.ImageField):
 
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split('base64',)
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp' + ext)
+            format, imgstr = data.split('base64,')
+            ext = format.split('/')[-1].split(';')[0]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+        return super().to_internal_value(data)
 
 
 class EmailTokenObtainSerializer(TokenObtainPairSerializer):
@@ -38,15 +37,20 @@ class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
     def validate(self, attrs):
 
         data = super().validate(attrs)
-        print(attrs)
-        print('123')
-
         refresh = self.get_token(self.user)
-
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
-
         return data
+
+
+class AvatarSerializer(serializers.ModelSerializer):
+    """Сериализатор для обновления аватара пользователя."""
+
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        fields = ('avatar',)
+        model = User
 
 
 class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
@@ -87,32 +91,8 @@ class RegisterDataSerializer(
         model = User
         fields = ('email', 'username', 'password', 'first_name', 'last_name',)
 
-    def validate(self, data):
-        """Проверка уникальности email и username."""
-        email = data.get('email')
-        username = data.get('username')
-        print('metod validate')
-
-        if User.objects.filter(username=username, email=email).exists():
-            return data
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                'Этот email уже используется под другим username.'
-            )
-
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                'Имя пользователя используется под другим email.'
-            )
-
-        return data
-
     def create(self, validated_data):
         """Создание или получение пользователя."""
-
-        password = validated_data.pop('password')
-        print('metod create')
 
         user, created = User.objects.get_or_create(
             username=validated_data['username'],
@@ -121,11 +101,9 @@ class RegisterDataSerializer(
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name')
         )
+        password = validated_data.pop('password')
         if created:
-            print('User created')
             user.set_password(password)
             user.save()
-        else:
-            print('not created')
 
         return user
