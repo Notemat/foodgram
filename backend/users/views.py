@@ -25,7 +25,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     permission_classes = (PostOrReadOnly,)
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
-    lookup_field = 'username'
+    lookup_field = 'id'
 
     @action(
         methods=['GET', 'PATCH'],

@@ -64,8 +64,8 @@ class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            'email', 'username', 'password',
-            'first_name', 'last_name', 'avatar'
+            'email', 'id', 'username',
+            'first_name', 'last_name', 'avatar',
         )
         extra_kwargs = {
             'is_subscribed': {'read_only': True},
