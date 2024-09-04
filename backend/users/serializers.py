@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from users.constants import EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
@@ -56,7 +57,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
 
-    username = serializers.CharField(max_length=256, required=True)
+    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH, required=True)
     avatar = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
@@ -82,10 +83,14 @@ class RegisterDataSerializer(
 ):
     """Сериализатор для данных регистрации."""
 
-    email = serializers.EmailField(max_length=256)
-    username = serializers.CharField(max_length=256)
-    first_name = serializers.CharField(max_length=150, required=True)
-    last_name = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(max_length=EMAIL_MAX_LENGTH)
+    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH)
+    first_name = serializers.CharField(
+        max_length=NAME_MAX_LENGTH, required=True
+    )
+    last_name = serializers.CharField(
+        max_length=NAME_MAX_LENGTH, required=True
+    )
 
     class Meta:
         model = User

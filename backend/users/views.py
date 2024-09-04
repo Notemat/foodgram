@@ -4,7 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (IsAuthenticated,)
+from rest_framework.permissions import (IsAuthenticated, IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -21,6 +21,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
     lookup_field = 'username'
@@ -28,7 +29,8 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(
         methods=['GET', 'PATCH'],
         detail=False,
-        permission_classes=[IsAuthenticated, ]
+        permission_classes=(IsAuthenticated, ),
+        url_path='me'
     )
     def me(self, request):
         """Получение или обновление пользователя."""
