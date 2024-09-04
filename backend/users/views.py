@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.serializers import (
-    CustomTokenObtainPairSerializer, CustomUserSerializer
+    CustomTokenObtainPairSerializer, CustomUserSerializer, RegisterDataSerializer
 )
 from users.models import User
 
@@ -27,6 +27,37 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
     lookup_field = 'username'
+
+    @action(
+        methods=['GET', 'PATCH'],
+        detail=False,
+        permission_classes=[IsAuthenticated, ]
+    )
+    def me(self, request):
+        """Получение или обновление пользователя."""
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def register(self, request):
+        """Регистрация пользователя."""
+        serializer = RegisterDataSerializer
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                'user': CustomUserSerializer(user).data,
+                'message': 'Пользователь успешно создан.'
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomTokenPairView(TokenObtainPairView):

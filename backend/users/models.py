@@ -19,7 +19,7 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 
-class Follow(models.Model):
+class Subscribe(models.Model):
     """Модель подписки на пользователей."""
 
     follower = models.ForeignKey(
