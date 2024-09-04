@@ -2,7 +2,9 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from users.views import CustomUserViewSet, CustomTokenPairView
+from users.views import (
+    CustomLogoutView, CustomUserViewSet, CustomTokenPairView
+)
 
 
 user_router = DefaultRouter()
@@ -14,6 +16,11 @@ urlpatterns = [
         'auth/token/login/',
         CustomTokenPairView.as_view(),
         name='token_obtain_pair'
+    ),
+    path(
+        'auth/token/logout/',
+        CustomLogoutView.as_view(),
+        name='token_logout'
     ),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/', include('djoser.urls.jwt')),

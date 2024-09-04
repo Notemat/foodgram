@@ -1,17 +1,19 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework import status, viewsets
+from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated, )
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.permissions import PostOrReadOnly
 from users.serializers import (
-    AvatarSerializer, CustomTokenObtainPairSerializer,
-    CustomUserSerializer, RegisterDataSerializer
+    AvatarSerializer, ChangePasswordSerializer,
+    CustomTokenObtainPairSerializer, CustomUserSerializer,
+    RegisterDataSerializer
 )
 from users.models import User
 
@@ -47,18 +49,21 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(
         methods=['PUT', 'DELETE'],
         detail=False,
-        permission_classes=[IsAuthenticated, ],
+        permission_classes=(IsAuthenticated, ),
         url_path='me/avatar'
     )
     def manage_avatar(self, request):
         """Обновление и удаление аватара."""
         user = request.user
         if request.method == 'PUT':
+
+            print(request.data)
             serializer = AvatarSerializer(
                 user, data=request.data, partial=True
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.method == 'DELETE':
             user.avatar.delete(save=True)
@@ -66,6 +71,27 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                 {'message': 'Аватар удалён.'},
                 status=status.HTTP_204_NO_CONTENT
             )
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        permission_classes=(IsAuthenticated, ),
+        url_path='set_password'
+    )
+    def change_password(self, request, *args, **kwargs):
+        """
+        Переопределение метода создания пользователя
+        для использования сериализатора регистрации.
+        """
+
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = request.user
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         """
@@ -90,3 +116,25 @@ class CustomTokenPairView(TokenObtainPairView):
     """Вьюсет для токена."""
 
     serializer_class = CustomTokenObtainPairSerializer
+
+
+class CustomLogoutView(views.APIView):
+    """Представление для удаления токенов."""
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            return Response(
+                {'detail': 'Токен удален.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except Exception as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

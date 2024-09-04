@@ -1,4 +1,5 @@
 import base64
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
@@ -6,7 +7,9 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.constants import EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
+from users.constants import (
+    EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
+)
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import User
 
@@ -20,6 +23,32 @@ class Base64ImageField(serializers.ImageField):
             ext = format.split('/')[-1].split(';')[0]
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
         return super().to_internal_value(data)
+
+
+class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
+    """Сериализатор для модели пользователя."""
+
+    username = serializers.CharField(
+        max_length=USERNAME_MAX_LENGTH, required=True
+    )
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        fields = (
+            'email', 'id', 'username',
+            'first_name', 'last_name', 'avatar',
+        )
+        extra_kwargs = {
+            'is_subscribed': {'read_only': True},
+        }
+        model = User
+
+    def validate_username(self, value):
+        """Валидация имени пользователя."""
+
+        if User.objects.filter(username=value).exists():
+            raise ValidationError('Данный username уже используется.')
+        return super().validate_username(value)
 
 
 class EmailTokenObtainSerializer(TokenObtainPairSerializer):
@@ -54,30 +83,23 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
 
 
-class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
-    """Сериализатор для модели пользователя."""
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    """Сериализатор для смены пароля."""
 
-    username = serializers.CharField(
-        max_length=USERNAME_MAX_LENGTH, required=True
-    )
-    avatar = Base64ImageField(required=False, allow_null=True)
+    new_password = serializers.CharField(required=True)
+    current_password = serializers.CharField(required=True)
 
     class Meta:
-        fields = (
-            'email', 'id', 'username',
-            'first_name', 'last_name', 'avatar',
-        )
-        extra_kwargs = {
-            'is_subscribed': {'read_only': True},
-        }
+        fields = ('new_password', 'current_password')
         model = User
 
-    def validate_username(self, value):
-        """Валидация имени пользователя."""
-
-        if User.objects.filter(username=value).exists():
-            raise ValidationError('Данный username уже используется.')
-        return super().validate_username(value)
+    def validate_password(self, data):
+        """Проверяем старый и новый пароли."""
+        user = self.context['request'].user
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError('Неверный пароль.')
+        validate_password(data)
+        return data
 
 
 class RegisterDataSerializer(
