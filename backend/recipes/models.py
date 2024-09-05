@@ -7,10 +7,18 @@ from users.models import User
 class Recipe(models.Model):
     """Модель рецепта."""
 
-    author = models.ForeignKey
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор'
+    )
     name = models.CharField(max_length=256, verbose_name='Название')
     image = models.ImageField(
-        upload_to='reciepes/images/', null=True, default=None
+        upload_to='reciepes/images/',
+        null=True,
+        default=None,
+        verbose_name='Изображение'
     )
     text = models.TextField(verbose_name='Текстовое описание')
     ingridients = models.ManyToManyField(
@@ -21,7 +29,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         'Tag', through='RecipeTag', verbose_name='Тэг'
     )
-    cooking_time = models.DurationField(verbose_name='Время приготовления')
+    cooking_time = models.PositiveIntegerField(verbose_name='Время приготовления')
     pub_date = models.DateTimeField(
         auto_now_add=True, verbose_name='Дата публикации'
     )
@@ -63,18 +71,26 @@ class Ingridient(models.Model):
         verbose_name_plural = 'Ингридиенты'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class RecipeIngridient(models.Model):
     """Связанная модель рецепта и ингридиента."""
 
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingridient = models.ForeignKey(Ingridient, on_delete=models.CASCADE)
-    amount = models.IntegerField()
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE,
+        related_name='recipe_ingredient',
+        verbose_name='Рецепт'
+    )
+    ingridient = models.ForeignKey(
+        Ingridient, on_delete=models.CASCADE,
+        related_name='recipe_ingredient',
+        verbose_name='Ингридиент'
+    )
+    amount = models.PositiveIntegerField(verbose_name='Количество')
 
     def __str__(self) -> str:
-        return f'{self.amount} {self.ingridient}'
+        return f'{self.ingridient} - {self.amount} {self.ingridient.measurement_unit}'
 
 
 class RecipeTag(models.Model):
