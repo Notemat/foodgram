@@ -49,7 +49,11 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     author = CustomUserSerializer(many=False, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingridients = RecipeIngridientSerializer(many=True, read_only=True)
+    ingridients = RecipeIngridientSerializer(
+        many=True,
+        read_only=True,
+        source='recipe_ingridients'
+    )
 
     class Meta:
         fields = (
@@ -66,7 +70,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     ingridients = RecipeIngridientSerializer(
         many=True,
         required=True,
-        source='recipeingredient_set'
+        source='recipe_ingridients'
     )
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -84,7 +88,11 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     cooking_time = serializers.IntegerField(required=True)
 
     class Meta:
-        fields = ('tags', 'image', 'name', 'text', 'cooking_time', 'author')
+        fields = (
+            'tags', 'image', 'author',
+            'ingridients', 'name', 'text',
+            'cooking_time'
+        )
         model = Recipe
 
     def create(self, validated_data):
