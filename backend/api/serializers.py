@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework import serializers
 
 from recipes.models import Ingridient, Recipe, RecipeIngridient, Tag
@@ -96,4 +97,23 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         model = Recipe
 
     def create(self, validated_data):
-        return Recipe.objects.create(**validated_data)
+        ingridients_data = validated_data.pop('ingridients')
+        recipe = Recipe.objects.create(**validated_data)
+
+        for ingridient_data in ingridients_data:
+            RecipeIngridient.objects.create(
+                recipe=recipe,
+                ingridient=ingridient_data['ingridient'],
+                amount=ingridient_data['amount']
+            )
+
+        return recipe
+
+    def validate_cooking_time(self, value):
+        """Валидация времени приготовления."""
+
+        if value < 1:
+            raise ValidationError(
+                'Время приготовления не может быть меньше одной минуты'
+            )
+        return value

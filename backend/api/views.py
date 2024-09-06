@@ -15,29 +15,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = RecipeReadSerializer
 
-    def create(self, request, *args, **kwargs):
-        """
-        Переопределение метода создания рецепта.
-        """
-
-        serializer = RecipeWriteSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # def get_ingridient_object(self):
-    #     title_id = self.kwargs.get('ingridient_id')
-    #     return get_object_or_404(Ingridient, pk=title_id)
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
 
     def perform_create(self, serializer):
         """Сохраняем автора поста."""
-        serializer.save(
-            author=self.request.user,
-            # ingridient=self.get_ingridient_object()
-        )
+        serializer.save(author=self.request.user)
 
 
 class TagViewset(viewsets.ReadOnlyModelViewSet):

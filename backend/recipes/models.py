@@ -80,6 +80,7 @@ class RecipeIngridient(models.Model):
 
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
+        related_name='recipe_ingridients',
         verbose_name='Рецепт'
     )
     ingridient = models.ForeignKey(
