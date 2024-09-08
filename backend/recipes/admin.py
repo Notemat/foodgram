@@ -2,14 +2,14 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from recipes.forms import AdminTagsRecipeForm
-from recipes.models import Ingridient, Recipe, RecipeIngridient, Tag
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
 class RecipeIngredientInline(admin.TabularInline):
     """Инлайн для ингридиентов в админке рецепта"""
-    model = RecipeIngridient
+    model = RecipeIngredient
     extra = 1
-    autocomplete_fields = ('ingridient',)
+    autocomplete_fields = ('ingredient',)
     verbose_name = 'Ингридиент'
     verbose_name_plural = 'Ингридиенты для рецепта'
 
@@ -39,7 +39,7 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-@admin.register(Ingridient)
-class IngridientAdmin(admin.ModelAdmin):
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)

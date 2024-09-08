@@ -1,3 +1,5 @@
+import string
+import random
 from django.db import models
 
 from users.models import User
@@ -21,9 +23,9 @@ class Recipe(models.Model):
         verbose_name='Изображение'
     )
     text = models.TextField(verbose_name='Текстовое описание')
-    ingridients = models.ManyToManyField(
-        'Ingridient',
-        through='RecipeIngridient',
+    ingredients = models.ManyToManyField(
+        'Ingredient',
+        through='RecipeIngredient',
         related_name='recipes',
         verbose_name='Ингридиенты'
     )
@@ -34,10 +36,29 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(
         auto_now_add=True, verbose_name='Дата публикации'
     )
+    short_link = models.CharField(
+        max_length=256, unique=True, blank=True, null=True
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+
+    def save(self, *args, **kwargs):
+        if not self.short_link:
+            self.short_link = self.generate_short_link()
+        super().save(*args, **kwargs)
+
+    def generate_short_link(self):
+        """Генерирует уникальную короткую ссылку для рецепта."""
+        length = 3
+        characters = string.ascii_letters + string.digits
+        while True:
+            short_link = ''.join(
+                random.choice(characters) for _ in range(length)
+            )
+            if not Recipe.objects.filter(short_link=short_link).exists():
+                return short_link
 
     def __str__(self):
         return self.name
@@ -59,7 +80,7 @@ class Tag(models.Model):
         return self.name
 
 
-class Ingridient(models.Model):
+class Ingredient(models.Model):
     """Модель ингридиента."""
 
     name = models.CharField(max_length=256, verbose_name='Название')
@@ -75,23 +96,23 @@ class Ingridient(models.Model):
         return f'{self.name}, {self.measurement_unit}'
 
 
-class RecipeIngridient(models.Model):
+class RecipeIngredient(models.Model):
     """Связанная модель рецепта и ингридиента."""
 
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
-        related_name='recipe_ingridients',
+        related_name='recipe_ingredients',
         verbose_name='Рецепт'
     )
-    ingridient = models.ForeignKey(
-        Ingridient, on_delete=models.CASCADE,
-        related_name='recipe_ingridients',
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
         verbose_name='Ингридиент'
     )
     amount = models.PositiveIntegerField(verbose_name='Количество')
 
     def __str__(self) -> str:
-        return f'{self.ingridient} - {self.amount} {self.ingridient.measurement_unit}'
+        return f'{self.ingredient} - {self.amount} {self.ingredient.measurement_unit}'
 
 
 class RecipeTag(models.Model):
