@@ -1,7 +1,7 @@
 from django.forms import ValidationError
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from recipes.models import Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 from users.serializers import CustomUserSerializer, Base64ImageField
 
 
@@ -142,3 +142,33 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 'Время приготовления не может быть меньше одной минуты'
             )
         return value
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка покупок."""
+
+    ingredients = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ['ingredients']
+        model = ShoppingCart
+
+    def get_ingredients(self, obj):
+        """Получаем ингридиенты для списка."""
+        recipies = Recipe.objects.filter(shoppingcart__user=obj.user)
+        ingredients = {}
+
+        for recipe in recipies:
+            recipe_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
+            for recipe_ingredient in recipe_ingredients:
+                ingredient = recipe_ingredient.ingredient
+                if ingredient.name in ingredients:
+                    ingredients[ingredient.name]['amount'] += (
+                        ingredient.recipeingredient.amount
+                    )
+                else:
+                    ingredients[ingredient.name] = {
+                        'amount': recipe_ingredient.amount,
+                        'measurement_unit': ingredient.measurement_unit
+                    }
+        return ingredients

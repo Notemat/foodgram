@@ -1,17 +1,65 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from reportlab.pdfgen import canvas
 
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
+from rest_framework import status, serializers, viewsets
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.permissions import (
+    SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
+)
 from rest_framework.response import Response
 
 from api.serializers import (
     IngredientSerializer, RecipeReadSerializer,
-    RecipeWriteSerializer, TagSerializer
+    RecipeWriteSerializer, ShoppingCartSerializer, TagSerializer
 )
 from api.permissions import AuthorOrReadOnlyPermission
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def download_shopping_cart(request):
+    """Функция для выгрузки pdf-документа."""
+    ingredients = get_aggregatted_ingridients(request.user)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="shopping_list.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 100, 'Shopping_list')
+    y = 700
+    for ingredient, data in ingredients.items():
+        p.drawString(
+            100, y, f"{ingredient} ({data['measurement_unit']}) — {data['amount']}"
+        )
+        y -= 20
+
+    p.showPage()
+    p.save()
+
+    return response
+
+
+def get_aggregatted_ingridients(user):
+    """Получаем ингридиенты для списка."""
+    recipies = Recipe.objects.filter(shoppingcart__user=user)
+    ingredients = {}
+
+    for recipe in recipies:
+        recipe_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
+        for recipe_ingredient in recipe_ingredients:
+            ingredient = recipe_ingredient.ingredient
+            if ingredient.name in ingredients:
+                ingredients[ingredient.name]['amount'] += (
+                    ingredient.recipeingredient.amount
+                )
+            else:
+                ingredients[ingredient.name] = {
+                    'amount': recipe_ingredient.amount,
+                    'measurement_unit': ingredient.measurement_unit
+                }
+    return ingredients
 
 
 def redirect_to_recipe(request, short_link):
@@ -40,7 +88,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        """Сохраняем автора поста."""
+        """Сохраняем автора."""
         serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['get'], url_path='get-link')
@@ -65,3 +113,21 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+
+
+class ShoppingCartViewSet(viewsets.ModelViewSet):
+    """Вьюсет для списка покупок."""
+
+    queryset = ShoppingCart.objects.all()
+    serializer_class = ShoppingCartSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def perform_create(self, serializer):
+        """Сохраняем автора."""
+        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        if ShoppingCart.objects.filter(
+            user=self.request.user, recipe=recipe
+        ).exists():
+            raise serializers.ValidationError("Этот рецепт уже в корзине.")
+
+        serializer.save(user=self.request.user, recipe=recipe)

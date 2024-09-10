@@ -125,6 +125,30 @@ class RecipeTag(models.Model):
         return f'{self.recipe} {self.tags}'
 
 
+class ShoppingCart(models.Model):
+    """Модель для списка покупок."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart',
+        verbose_name='Автор'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique_shopping_cart'
+            )
+        ]
+
+
 class Favorite(models.Model):
     """Модель избранного."""
 
