@@ -184,26 +184,24 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         return ingredients
 
 
+class RecipeReadShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для короткого чтения рецепта."""
+
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe
+
+
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для модели избранного."""
 
-    recipe = serializers.SerializerMethodField()
+    recipe = RecipeReadShortSerializer(read_only=True)
 
     class Meta:
-        fields = ('recipe')
+        fields = ('recipe',)
         model = Favorite
 
-    def get_recipe(self, obj):
-        """Получаем объекты рецепта"""
-        recipe = obj.recipe
-        return {
-            'id': recipe.id,
-            'name': recipe.name,
-            'image': recipe.image.url,
-            'cooking_time': recipe.cooking_time,
-        }
-    
-    def valide_recipe(self, value):
+    def valide(self, attrs):
         """Валидация на дубликат рецепта в избранном."""
         request = self.context['request']
         recipe_id = self.context['view'].kwargs.get('recipe_id')
@@ -213,7 +211,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Этот рецепт уже добавлен в избранное.'
             )
-        return value
+        return attrs
 
-
-        
+    def to_representation(self, instance):
+        """Возвращаем в ответе словарь объектов."""
+        data = super().to_representation(instance)
+        return data['recipe']

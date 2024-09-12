@@ -9,6 +9,7 @@ from rest_framework.permissions import (
     SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
 )
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from api.serializers import (
     FavoriteSerializer, IngredientSerializer, RecipeReadSerializer,
@@ -137,6 +138,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 class FavoriteViewSet(
     CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
 ):
+    """Вьюсет для избранного."""
+
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = (IsAuthenticated,)
@@ -144,19 +147,13 @@ class FavoriteViewSet(
     def perform_create(self, serializer):
         """Сохраняем автора и рецепт."""
         recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-
         serializer.save(user=self.request.user, recipe=recipe)
 
-    def get_object(self):
-        """Переопределяем объект для удаления."""
+    def delete(self, request, *args, **kwargs):
+        """Удаляем объект из избранного."""
         recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         favorite = get_object_or_404(
             Favorite, user=self.request.user, recipe=recipe
         )
-        return favorite
-    
-    def destroy(self, request, *args, **kwargs):
-        """Переопределяем метод удаления для явного указания логики."""
-        instance = self.get_object()
-        self.perform_destroy(instance)
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
