@@ -28,20 +28,19 @@ class User(AbstractUser):
 class Subscribe(models.Model):
     """Модель подписки на пользователей."""
 
-    follower = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='follower'
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='subscriptionist'
     )
-    following = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='following'
+    subscription = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='subscribers'
     )
 
     class Meta:
-
         constraints = [
             models.UniqueConstraint(
-                fields=['follower', 'following'], name='unique_following'
+                fields=['user', 'subscription'], name='unique_following'
             )
         ]
 
     def __str__(self) -> str:
-        return f'{self.follower} подписан на {self.following}'
+        return f'{self.user} подписан на {self.subscription}'

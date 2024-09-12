@@ -4,6 +4,7 @@ from rest_framework import serializers
 from recipes.models import (
     Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 )
+from recipes.serializers import RecipeReadShortSerializer
 from users.serializers import CustomUserSerializer, Base64ImageField
 
 
@@ -182,14 +183,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
                         'measurement_unit': ingredient.measurement_unit
                     }
         return ingredients
-
-
-class RecipeReadShortSerializer(serializers.ModelSerializer):
-    """Сериализатор для короткого чтения рецепта."""
-
-    class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
-        model = Recipe
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

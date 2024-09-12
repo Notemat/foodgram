@@ -2,16 +2,19 @@ import base64
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.db.models import Count
 
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from recipes.models import Recipe
+from recipes.serializers import RecipeReadShortSerializer
 from users.constants import (
     EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
 )
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
-from users.models import User
+from users.models import Subscribe, User
 
 
 class Base64ImageField(serializers.ImageField):
@@ -32,16 +35,27 @@ class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
         max_length=USERNAME_MAX_LENGTH, required=True
     )
     avatar = Base64ImageField(required=False, allow_null=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
             'email', 'id', 'username',
-            'first_name', 'last_name', 'avatar',
+            'first_name', 'last_name', 'is_subscribed',
+            'avatar',
         )
         extra_kwargs = {
             'is_subscribed': {'read_only': True},
         }
         model = User
+
+    def get_is_subscribed(self, obj):
+        """Проверяем, подписан ли пользователь."""
+
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Subscribe.objects.filter(
+                user=user, subscription=obj
+            ).exists()
 
     def validate_username(self, value):
         """Валидация имени пользователя."""
@@ -136,3 +150,29 @@ class RegisterDataSerializer(
             user.save()
 
         return user
+
+
+class SubscribeWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи модели подписок."""
+
+    recipes = RecipeReadShortSerializer(
+        many=True, source='subscription.recipes', read_only=True
+    )
+    subscription = CustomUserSerializer(read_only=True)
+    recipes_count = serializers.IntegerField(
+        source='subscription.recipes.count', read_only=True
+    )
+
+    class Meta:
+        fields = ('subscription', 'recipes', 'recipes_count')
+        model = Subscribe
+
+    def to_representation(self, instance):
+        """Возвращаем в ответе словарь объектов."""
+        data = super().to_representation(instance)
+        return {
+            **data['subscription'],
+            'is_subscribed': True,
+            'recipes': data['recipes'],
+            'recipes_count': data['recipes_count']
+        }

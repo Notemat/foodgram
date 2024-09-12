@@ -3,19 +3,21 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated, )
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from recipes.models import Recipe
 from users.permissions import PostOrReadOnly
 from users.serializers import (
     AvatarSerializer, ChangePasswordSerializer,
     CustomTokenObtainPairSerializer, CustomUserSerializer,
-    RegisterDataSerializer
+    RegisterDataSerializer, SubscribeWriteSerializer
 )
-from users.models import User
+from users.models import Subscribe, User
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
@@ -138,3 +140,41 @@ class CustomLogoutView(views.APIView):
                 {'detail': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class SubscribeViewSet(
+    CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
+):
+    """Вьюсет для подписок."""
+
+    queryset = Subscribe.objects.all()
+    serializer_class = SubscribeWriteSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def perform_create(self, serializer):
+        """Сохраняем автора и рецепт."""
+        subscription = get_object_or_404(User, id=self.kwargs['user_id'])
+        serializer.save(
+            user=self.request.user, subscription=subscription
+        )
+
+    def delete(self, request, *args, **kwargs):
+        """Удаляем объект из избранного."""
+        subscription = get_object_or_404(User, id=self.kwargs['user_id'])
+        subscribe = get_object_or_404(
+            Subscribe,
+            user=self.request.user,
+            subscription=subscription
+        )
+        subscribe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для спика подписок."""
+
+    serializer_class = SubscribeWriteSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        return Subscribe.objects.filter(user=self.request.user)
