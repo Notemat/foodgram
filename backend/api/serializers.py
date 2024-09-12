@@ -1,7 +1,9 @@
 from django.forms import ValidationError
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
 from users.serializers import CustomUserSerializer, Base64ImageField
 
 
@@ -41,12 +43,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(many=False, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
             'id', 'tags', 'author',
-            'ingredients', 'name', 'image',
-            'text', 'cooking_time',
+            'ingredients', 'is_favorite', 'name',
+            'image', 'text', 'cooking_time',
         )
         model = Recipe
 
@@ -62,6 +65,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             }
             for ingredient in recipe_ingredients
         ]
+
+    def get_is_favorite(self, obj):
+        """Проверяем, есть ли рецепт в избранном."""
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Favorite.objects.filter(user=user, recipe=obj).exists()
+        return False
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -150,7 +160,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ['ingredients']
+        fields = ('ingredients',)
         model = ShoppingCart
 
     def get_ingredients(self, obj):
@@ -172,3 +182,38 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
                         'measurement_unit': ingredient.measurement_unit
                     }
         return ingredients
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели избранного."""
+
+    recipe = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('recipe')
+        model = Favorite
+
+    def get_recipe(self, obj):
+        """Получаем объекты рецепта"""
+        recipe = obj.recipe
+        return {
+            'id': recipe.id,
+            'name': recipe.name,
+            'image': recipe.image.url,
+            'cooking_time': recipe.cooking_time,
+        }
+    
+    def valide_recipe(self, value):
+        """Валидация на дубликат рецепта в избранном."""
+        request = self.context['request']
+        recipe_id = self.context['view'].kwargs.get('recipe_id')
+        if Favorite.objects.filter(
+            user=request.user, recipe_id=recipe_id
+        ).exists():
+            raise serializers.ValidationError(
+                'Этот рецепт уже добавлен в избранное.'
+            )
+        return value
+
+
+        

@@ -4,17 +4,18 @@ from reportlab.pdfgen import canvas
 
 from rest_framework import status, serializers, viewsets
 from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import (
     SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
 )
 from rest_framework.response import Response
 
 from api.serializers import (
-    IngredientSerializer, RecipeReadSerializer,
+    FavoriteSerializer, IngredientSerializer, RecipeReadSerializer,
     RecipeWriteSerializer, ShoppingCartSerializer, TagSerializer
 )
 from api.permissions import AuthorOrReadOnlyPermission
-from recipes.models import Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 
 
 @api_view(['GET'])
@@ -131,3 +132,31 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Этот рецепт уже в корзине.")
 
         serializer.save(user=self.request.user, recipe=recipe)
+
+
+class FavoriteViewSet(
+    CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
+):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        """Сохраняем автора и рецепт."""
+        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+
+        serializer.save(user=self.request.user, recipe=recipe)
+
+    def get_object(self):
+        """Переопределяем объект для удаления."""
+        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        favorite = get_object_or_404(
+            Favorite, user=self.request.user, recipe=recipe
+        )
+        return favorite
+    
+    def destroy(self, request, *args, **kwargs):
+        """Переопределяем метод удаления для явного указания логики."""
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
