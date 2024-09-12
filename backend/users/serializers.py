@@ -152,7 +152,7 @@ class RegisterDataSerializer(
         return user
 
 
-class SubscribeWriteSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(serializers.ModelSerializer):
     """Сериализатор для записи модели подписок."""
 
     recipes = RecipeReadShortSerializer(

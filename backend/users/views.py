@@ -3,19 +3,18 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated, )
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from recipes.models import Recipe
 from users.permissions import PostOrReadOnly
 from users.serializers import (
     AvatarSerializer, ChangePasswordSerializer,
     CustomTokenObtainPairSerializer, CustomUserSerializer,
-    RegisterDataSerializer, SubscribeWriteSerializer
+    RegisterDataSerializer, SubscribeSerializer
 )
 from users.models import Subscribe, User
 
@@ -142,33 +141,27 @@ class CustomLogoutView(views.APIView):
             )
 
 
-class SubscriptionViewSet(ListModelMixin, viewsets.GenericViewSet):
+class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для спика подписок."""
 
-    serializer_class = SubscribeWriteSerializer
+    serializer_class = SubscribeSerializer
     permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
         return Subscribe.objects.filter(user=self.request.user)
 
-    def list(self, request, *args, **kwargs):
-        """Получаем список всех подписок пользователя."""
-        subscriptions = Subscribe.objects.filter(user=self.request.user)
-        serializer = self.get_serializer(subscriptions, many=True)
-        return Response(serializer.data)
-
 
 class SubscribeViewSet(
     CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
 ):
-    """Вьюсет для подписок."""
+    """Вьюсет для создания и удаления подписок."""
 
     queryset = Subscribe.objects.all()
-    serializer_class = SubscribeWriteSerializer
+    serializer_class = SubscribeSerializer
     permission_classes = (IsAuthenticated, )
 
     def perform_create(self, serializer):
-        """Сохраняем автора и рецепт."""
+        """Сохраняем автора и объект подписки."""
         subscription = get_object_or_404(User, id=self.kwargs['user_id'])
         serializer.save(
             user=self.request.user, subscription=subscription
