@@ -9,17 +9,15 @@ from users.views import (
 
 
 user_router = DefaultRouter()
-user_router.register('users', CustomUserViewSet, basename='users')
+user_router.register(
+    'users/subscriptions', SubscriptionViewSet, basename='subscriptions'
+)
 user_router.register(
     r'users/(?P<user_id>\d+)/subscribe',
     SubscribeViewSet,
     basename='subscribe'
 )
-user_router.register(
-    r'users/subscriptions',
-    SubscriptionViewSet,
-    basename='subscriptions'
-)
+user_router.register('users', CustomUserViewSet, basename='users')
 
 urlpatterns = [
     path('auth/', include('djoser.urls')),

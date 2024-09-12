@@ -142,6 +142,22 @@ class CustomLogoutView(views.APIView):
             )
 
 
+class SubscriptionViewSet(ListModelMixin, viewsets.GenericViewSet):
+    """Вьюсет для спика подписок."""
+
+    serializer_class = SubscribeWriteSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        return Subscribe.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        """Получаем список всех подписок пользователя."""
+        subscriptions = Subscribe.objects.filter(user=self.request.user)
+        serializer = self.get_serializer(subscriptions, many=True)
+        return Response(serializer.data)
+
+
 class SubscribeViewSet(
     CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
 ):
@@ -168,13 +184,3 @@ class SubscribeViewSet(
         )
         subscribe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет для спика подписок."""
-
-    serializer_class = SubscribeWriteSerializer
-    permission_classes = (IsAuthenticated, )
-
-    def get_queryset(self):
-        return Subscribe.objects.filter(user=self.request.user)
