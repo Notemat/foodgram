@@ -5,7 +5,6 @@ from django.db import models
 from users.models import User
 
 
-# Create your models here.
 class Recipe(models.Model):
     """Модель рецепта."""
 
@@ -68,9 +67,11 @@ class Tag(models.Model):
     """Модель тэга."""
 
     name = models.CharField(
-        max_length=256, unique=True, verbose_name='Название'
+        max_length=32, unique=True, verbose_name='Название'
     )
-    slug = models.SlugField(unique=True, verbose_name='Слаг')
+    slug = models.SlugField(
+        max_length=32, unique=True, verbose_name='Слаг'
+    )
 
     class Meta:
         verbose_name = 'Тэг'

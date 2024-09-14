@@ -1,3 +1,4 @@
+import re
 from django.forms import ValidationError
 from rest_framework import serializers
 
@@ -11,16 +12,24 @@ from users.serializers import CustomUserSerializer, Base64ImageField
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для модели тэга."""
 
+    slug = serializers.SlugField(max_length=32, unique=True)
+
     class Meta:
         fields = ('id', 'name', 'slug')
         model = Tag
+
+    def validate_slug(self, value):
+        """Валидация слага."""
+        if not re.match(r'^[-a-zA-Z0-9_]+$', value):
+            raise ValidationError('Недопустимый слаг.')
+        return value
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор модели ингридиентов."""
 
     class Meta:
-        fields = ('name', 'measurement_unit')
+        fields = ('id', 'name', 'measurement_unit')
         model = Ingredient
 
 

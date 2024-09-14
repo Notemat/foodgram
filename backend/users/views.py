@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status, views, viewsets
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (IsAuthenticated, )
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,9 +13,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.permissions import PostOrReadOnly
 from users.serializers import (
-    AvatarSerializer, ChangePasswordSerializer,
-    CustomTokenObtainPairSerializer, CustomUserSerializer,
-    RegisterDataSerializer, SubscribeSerializer
+    AvatarSerializer, ChangePasswordSerializer, CustomAuthTokenSerializer,
+    CustomUserSerializer, RegisterDataSerializer, SubscribeSerializer
 )
 from users.models import Subscribe, User
 
@@ -24,7 +24,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (PostOrReadOnly,)
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
@@ -58,14 +58,15 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == 'PUT':
 
-            print(request.data)
             serializer = AvatarSerializer(
                 user, data=request.data, partial=True
             )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            print(serializer.data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         if request.method == 'DELETE':
             user.avatar.delete(save=True)
             return Response(
@@ -85,7 +86,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         для использования сериализатора регистрации.
         """
 
-        serializer = ChangePasswordSerializer(data=request.data)
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={'request': request}
+        )
 
         if serializer.is_valid():
             user = request.user
@@ -102,21 +105,20 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
         serializer = RegisterDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        serializer.save()
 
-        return Response(
-            {
-                'user': CustomUserSerializer(user).data,
-                'message': 'Пользователь успешно создан.'
-            },
-            status=status.HTTP_201_CREATED
-        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CustomTokenPairView(TokenObtainPairView):
+class CustomTokenAuthView(views.APIView):
     """Вьюсет для токена."""
 
-    serializer_class = CustomTokenObtainPairSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = CustomAuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'auth_token': token.key}, status=status.HTTP_200_OK)
 
 
 class CustomLogoutView(views.APIView):

@@ -2,7 +2,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from reportlab.pdfgen import canvas
 
-from rest_framework import status, serializers, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, serializers, viewsets
 from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import (
@@ -115,6 +116,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('^name',)
+
+    def get_queryset(self):
+        queryset = Ingredient.objects.all()
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name=name)
+        return queryset
 
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):

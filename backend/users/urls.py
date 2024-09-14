@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from users.views import (
-    CustomLogoutView, CustomUserViewSet, CustomTokenPairView,
+    CustomLogoutView, CustomUserViewSet, CustomTokenAuthView,
     SubscribeViewSet, SubscriptionViewSet
 )
 
@@ -23,7 +23,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path(
         'auth/token/login/',
-        CustomTokenPairView.as_view(),
+        CustomTokenAuthView.as_view(),
         name='token_obtain_pair'
     ),
     path(
