@@ -2,6 +2,10 @@ import string
 import random
 from django.db import models
 
+from recipes.constants import (
+    MAX_LENGTH_NAME, MAX_LENGTH_INGREDIENT, MAX_LENGTH_LINK,
+    MAX_LENGTH_TAGS, MAX_LENGTH_UNIT
+)
 from users.models import User
 
 
@@ -14,7 +18,7 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор'
     )
-    name = models.CharField(max_length=256, verbose_name='Название')
+    name = models.CharField(max_length=MAX_LENGTH_NAME, verbose_name='Название')
     image = models.ImageField(
         upload_to='reciepes/images/',
         null=True,
@@ -38,7 +42,7 @@ class Recipe(models.Model):
         auto_now_add=True, verbose_name='Дата публикации'
     )
     short_link = models.CharField(
-        max_length=256, unique=True, blank=True, null=True
+        max_length=MAX_LENGTH_LINK, unique=True, blank=True, null=True
     )
 
     class Meta:
@@ -53,7 +57,7 @@ class Recipe(models.Model):
 
     def generate_short_link(self):
         """Генерирует уникальную короткую ссылку для рецепта."""
-        length = 3
+        length = MAX_LENGTH_LINK
         characters = string.ascii_letters + string.digits
         while True:
             short_link = ''.join(
@@ -70,10 +74,10 @@ class Tag(models.Model):
     """Модель тэга."""
 
     name = models.CharField(
-        max_length=32, unique=True, verbose_name='Название'
+        max_length=MAX_LENGTH_TAGS, unique=True, verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=32, unique=True, verbose_name='Слаг'
+        max_length=MAX_LENGTH_TAGS, unique=True, verbose_name='Слаг'
     )
 
     class Meta:
@@ -88,9 +92,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель ингридиента."""
 
-    name = models.CharField(max_length=256, verbose_name='Название')
+    name = models.CharField(
+        max_length=MAX_LENGTH_INGREDIENT, verbose_name='Название'
+    )
     measurement_unit = models.CharField(
-        max_length=2, verbose_name='Единица измерения'
+        max_length=MAX_LENGTH_UNIT, verbose_name='Единица измерения'
     )
 
     class Meta:
@@ -118,7 +124,8 @@ class RecipeIngredient(models.Model):
     amount = models.PositiveIntegerField(verbose_name='Количество')
 
     def __str__(self) -> str:
-        return f'{self.ingredient} - {self.amount} {self.ingredient.measurement_unit}'
+        return (f'{self.ingredient} - {self.amount} '
+                f'{self.ingredient.measurement_unit}')
 
 
 class RecipeTag(models.Model):
