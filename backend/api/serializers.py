@@ -2,7 +2,7 @@ import re
 from django.forms import ValidationError
 from rest_framework import serializers
 
-from api.mixins import RecipeSerializerMixin
+from api.mixins import ShoppingCartFavoriteSerializerMixin
 from recipes.models import (
     Favorite, Ingredient, Recipe,
     RecipeIngredient, ShoppingCart, Tag
@@ -217,31 +217,37 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ShoppingCartSerializer(RecipeSerializerMixin):
+class ShoppingCartSerializer(ShoppingCartFavoriteSerializerMixin):
     """Сериализатор для списка покупок."""
 
     class Meta:
         model = ShoppingCart
         fields = ('recipe',)
+    
+    def create(self, validated_data):
+        return self.create_recipe_and_user(ShoppingCart, validated_data)
 
     def validate(self, data):
         """Валидация подписки на пользователя."""
-        return self.validate_recipe_in_user(
+        return self.validate_recipe_and_user(
             ShoppingCart,
             'Этот рецепт уже в списке покупок.'
         )
 
 
-class FavoriteSerializer(RecipeSerializerMixin):
+class FavoriteSerializer(ShoppingCartFavoriteSerializerMixin):
     """Сериализатор для модели избранного."""
 
     class Meta:
         model = Favorite
         fields = ('recipe',)
 
+    def create(self, validated_data):
+        return self.create_recipe_and_user(Favorite, validated_data)
+
     def validate(self, data):
         """Валидация подписки на пользователя."""
-        return self.validate_recipe_in_user(
+        return self.validate_recipe_and_user(
             Favorite,
             'Этот рецепт уже в избранном.'
         )

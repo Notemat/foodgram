@@ -8,12 +8,12 @@ from reportlab.pdfgen import canvas
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import (
     SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
 )
 from rest_framework.response import Response
 
+from api.mixins import ShoppingCartFavoriteViewSetMixin
 from api.serializers import (
     FavoriteSerializer, IngredientSerializer, RecipeReadSerializer,
     RecipeWriteSerializer, ShoppingCartSerializer, TagSerializer
@@ -229,7 +229,10 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class ShoppingCartViewSet(viewsets.ModelViewSet):
+
+
+
+class ShoppingCartViewSet(ShoppingCartFavoriteViewSetMixin):
     """Вьюсет для списка покупок."""
 
     queryset = ShoppingCart.objects.all()
@@ -237,55 +240,34 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return self.create_from_mixin(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         """Сохраняем автора и рецепт."""
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        serializer.save(user=self.request.user, recipe=recipe)
+        return self.perform_create_from_mixin(serializer=serializer)
 
     def delete(self, request, *args, **kwargs):
-        """Удаляем объект из списка покупок."""
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        is_in_shopping_cart = ShoppingCart.objects.filter(
-            user=self.request.user, recipe=recipe
+        """Удаляем объект из избранного."""
+        return self.delete_from_mixin(
+            request, model_class=ShoppingCart, *args, **kwargs
         )
-        if not is_in_shopping_cart:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        is_in_shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FavoriteViewSet(
-    CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
-):
+class FavoriteViewSet(ShoppingCartFavoriteViewSetMixin):
     """Вьюсет для избранного."""
 
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
-    permission_classes = (IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return self.create_from_mixin(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         """Сохраняем автора и рецепт."""
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        serializer.save(user=self.request.user, recipe=recipe)
+        return self.perform_create_from_mixin(serializer=serializer)
 
     def delete(self, request, *args, **kwargs):
         """Удаляем объект из избранного."""
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        is_favorite = Favorite.objects.filter(
-            user=self.request.user, recipe=recipe
+        return self.delete_from_mixin(
+            request, model_class=Favorite, *args, **kwargs
         )
-        if not is_favorite:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        is_favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
