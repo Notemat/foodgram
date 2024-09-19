@@ -162,6 +162,17 @@ class SubscribeViewSet(
     serializer_class = SubscribeSerializer
     permission_classes = (IsAuthenticated, )
 
+    def get_queryset(self):
+        """Получаем список подписок пользователя."""
+        return Subscribe.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        """Получаем подписки с возможностью лимита на количество рецептов."""
+        queryset = self.get_queryset()
+        recipe_limit = self.request.query_params.get('recipe_limit')
+        serializer = self.get_serializer(queryset, many=True, context={'recipe_limit': recipe_limit})
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         """Сохраняем автора и объект подписки."""
         subscription = get_object_or_404(User, id=self.kwargs['user_id'])
@@ -170,12 +181,12 @@ class SubscribeViewSet(
         )
 
     def delete(self, request, *args, **kwargs):
-        """Удаляем объект из избранного."""
+        """Удаляем пользователя из подписок."""
         subscription = get_object_or_404(User, id=self.kwargs['user_id'])
-        subscribe = get_object_or_404(
-            Subscribe,
-            user=self.request.user,
-            subscription=subscription
+        subscribe = Subscribe.objects.filter(
+            user=self.request.user, subscription=subscription
         )
+        if not subscribe:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         subscribe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
-    FavoriteViewSet, download_shopping_cart, RecipeViewSet, redirect_to_recipe,
+    FavoriteViewSet, download_shopping_cart, RecipeViewSet,
     ShoppingCartViewSet, TagViewset, IngredientViewSet
 )
 
@@ -23,7 +23,6 @@ v1_router.register(
 
 
 urlpatterns = [
-    path('r/<str:short_link>/', redirect_to_recipe, name='recipe_short_link'),
     path(
         'recipes/download_shopping_cart/',
         download_shopping_cart,

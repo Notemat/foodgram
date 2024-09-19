@@ -2,9 +2,10 @@ from django import forms
 
 from recipes.models import Recipe, Tag
 
+
 class MinutesInput(forms.TextInput):
     """Виджет для ввода времени в минутах."""
-    
+
     def init(self, attrs=None):
         default_attrs = {'placeholder': 'Введите количество минут'}
         if attrs:

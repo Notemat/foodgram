@@ -3,15 +3,11 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.db.models import Count
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from recipes.models import Recipe
 from recipes.serializers import RecipeReadShortSerializer
 from users.constants import (
     EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
@@ -172,7 +168,7 @@ class RegisterDataSerializer(
         user.set_password(password)
         user.save()
         return user
-    
+
     def to_representation(self, instance):
         """Скрываем пароль из ответа."""
         representation = super().to_representation(instance)
@@ -195,9 +191,48 @@ class SubscribeSerializer(serializers.ModelSerializer):
         fields = ('subscription', 'recipes', 'recipes_count')
         model = Subscribe
 
+    def validate(self, data):
+        """Валидация подписки на пользователя."""
+        user = self.context['request'].user
+        subscription = self.context['view'].kwargs.get('user_id')
+        if user == get_object_or_404(User, id=subscription):
+            raise serializers.ValidationError(
+                'Нельзя подписываться на самого себя.'
+            )
+        if Subscribe.objects.filter(
+            user=user, subscription=get_object_or_404(User, id=subscription)
+        ).exists():
+            raise serializers.ValidationError(
+                'Нельзя подписываться на одного человека дважды.'
+            )
+
+        return data
+
+    def get_recipes(self, obj):
+        """Получаем ограниченное количество рецептов подписанных пользователей."""
+        recipe_limit = self.context.get('recipe_limit')
+        recipes_queryset = obj.subscription.recipes.all()
+        if recipe_limit:
+            recipes_queryset = recipes_queryset[:int(recipe_limit)]
+
+        return RecipeReadShortSerializer(recipes_queryset, many=True).data
+
     def to_representation(self, instance):
-        """Возвращаем в ответе словарь объектов."""
+        """Возвращаем в ответе словарь объектов с учетом лимита рецептов."""
         data = super().to_representation(instance)
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
+
+        if recipes_limit:
+            try:
+                recipes_limit = int(recipes_limit)
+                if recipes_limit < 0:
+                    raise ValidationError('recipes_limit must be a positive integer.')
+            except ValueError:
+                raise ValidationError('recipes_limit must be an integer.')
+
+            data['recipes'] = data['recipes'][:recipes_limit]
+
         return {
             **data['subscription'],
             'is_subscribed': True,
