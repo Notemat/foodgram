@@ -1,13 +1,12 @@
 import re
 from django.forms import ValidationError
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from users.models import User
+from api.mixins import RecipeSerializerMixin
 from recipes.models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+    Favorite, Ingredient, Recipe,
+    RecipeIngredient, ShoppingCart, Tag
 )
-from recipes.serializers import RecipeReadShortSerializer
 from users.serializers import CustomUserSerializer, Base64ImageField
 
 
@@ -218,55 +217,31 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class ShoppingCartSerializer(RecipeSerializerMixin):
     """Сериализатор для списка покупок."""
 
-    recipe = RecipeReadShortSerializer(read_only=True)
-
     class Meta:
-        fields = ('recipe',)
         model = ShoppingCart
+        fields = ('recipe',)
 
     def validate(self, data):
         """Валидация подписки на пользователя."""
-        user = self.context['request'].user
-        recipe = self.context['view'].kwargs.get('recipe_id')
-        if ShoppingCart.objects.filter(
-            user=user, recipe=get_object_or_404(Recipe, id=recipe)
-        ).exists():
-            raise serializers.ValidationError(
-                'Этот рецепт уже в списке покупок.'
-            )
-        return data
-
-    def to_representation(self, instance):
-        """Возвращаем в ответе словарь объектов."""
-        data = super().to_representation(instance)
-        return data['recipe']
+        return self.validate_recipe_in_user(
+            ShoppingCart,
+            'Этот рецепт уже в списке покупок.'
+        )
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(RecipeSerializerMixin):
     """Сериализатор для модели избранного."""
 
-    recipe = RecipeReadShortSerializer(read_only=True)
-
     class Meta:
-        fields = ('recipe',)
         model = Favorite
+        fields = ('recipe',)
 
     def validate(self, data):
         """Валидация подписки на пользователя."""
-        user = self.context['request'].user
-        recipe = self.context['view'].kwargs.get('recipe_id')
-        if Favorite.objects.filter(
-            user=user, recipe=get_object_or_404(Recipe, id=recipe)
-        ).exists():
-            raise serializers.ValidationError(
-                'Этот рецепт уже в избранном.'
-            )
-        return data
-
-    def to_representation(self, instance):
-        """Возвращаем в ответе словарь объектов."""
-        data = super().to_representation(instance)
-        return data['recipe']
+        return self.validate_recipe_in_user(
+            Favorite,
+            'Этот рецепт уже в избранном.'
+        )

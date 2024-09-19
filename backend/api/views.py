@@ -1,14 +1,13 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, serializers, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.exceptions import NotFound
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import (
     SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -20,7 +19,6 @@ from api.serializers import (
     RecipeWriteSerializer, ShoppingCartSerializer, TagSerializer
 )
 from api.permissions import AuthorOrReadOnlyPermission
-from users.models import User
 from recipes.models import (
     Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 )
@@ -29,7 +27,7 @@ from recipes.models import (
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def download_shopping_cart(request):
-    """Функция для выгрузки pdf-документа."""
+    """Функция для выгрузки списка покупок pdf-документом."""
     ingredients = get_aggregatted_ingridients(request.user)
 
     response = HttpResponse(content_type='application/pdf')
@@ -45,7 +43,8 @@ def download_shopping_cart(request):
     y = 750
     for ingredient, data in ingredients.items():
         p.drawString(
-            100, y, f"{ingredient} ({data['measurement_unit']}) — {data['amount']}"
+            100, y, f"{ingredient} ({data['measurement_unit']}) "
+                    f"— {data['amount']}"
         )
         y -= 20
 
@@ -54,11 +53,9 @@ def download_shopping_cart(request):
 
     return response
 
-    return response
-
 
 def get_aggregatted_ingridients(user):
-    """Получаем ингридиенты для списка."""
+    """Получаем ингридиенты для списка покупок."""
     recipies = Recipe.objects.filter(shoppingcart__user=user)
     ingredients = {}
 
@@ -79,10 +76,9 @@ def get_aggregatted_ingridients(user):
 
 
 class RedirectToRecipeView(View):
+    """Вью для редиректа по короткой ссылке."""
     def get(self, request, short_link):
-        # Ищем рецепт по короткой ссылке
         recipe = get_object_or_404(Recipe, short_link=short_link)
-        # Перенаправляем на страницу рецепта по его id
         return redirect(f'/recipes/{recipe.id}/')
 
 
@@ -93,6 +89,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
     def get_queryset(self):
+        """Переопределяем queryset для возможности сортировки выдачи."""
         queryset = Recipe.objects.all()
 
         author = self.request.query_params.get('author')
@@ -171,7 +168,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """
-        Для обновления рецепта испольм сериализатор для записи.
+        Для обновления рецепта используем сериализатор для записи.
 
         Для ответа - сериализатор для чтения.
         """
