@@ -13,6 +13,10 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 
+from api.constants import (
+    FALSE, LINE_SPACING, START_Y, TEXT_FONT_SIZE,
+    TRUE, TITLE_FONT_SIZE, TEXT_X, TITLE_X, TITLE_Y
+)
 from api.mixins import ShoppingCartFavoriteViewSetMixin
 from api.serializers import (
     FavoriteSerializer, IngredientSerializer, RecipeReadSerializer,
@@ -32,25 +36,23 @@ def download_shopping_cart(request):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="shoppinglist.pdf"'
-
     p = canvas.Canvas(response)
     pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
-    p.setFont('DejaVuSans', 16)
 
-    p.drawString(200, 800, 'Список покупок')
+    p.setFont('DejaVuSans', TITLE_FONT_SIZE)
+    p.drawString(TITLE_X, TITLE_Y, 'Список покупок')
 
-    p.setFont('DejaVuSans', 12)
-    y = 750
+    p.setFont('DejaVuSans', TEXT_FONT_SIZE)
+    y = START_Y
     for ingredient, data in ingredients.items():
         p.drawString(
-            100, y, f"{ingredient} ({data['measurement_unit']}) "
-                    f"— {data['amount']}"
+            TEXT_X, y, f"{ingredient} ({data['measurement_unit']}) "
+                       f"— {data['amount']}"
         )
-        y -= 20
+        y -= LINE_SPACING
 
     p.showPage()
     p.save()
-
     return response
 
 
@@ -108,14 +110,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_authenticated:
             if is_favorited:
-                if is_favorited == '1':
+                if is_favorited == TRUE:
                     queryset = queryset.filter(favorite__user=user)
-                elif is_favorited == '0':
+                elif is_favorited == FALSE:
                     queryset = queryset.exclude(favorite__user=user)
             if is_in_shopping_cart:
-                if is_in_shopping_cart == '1':
+                if is_in_shopping_cart == TRUE:
                     queryset = queryset.filter(shoppingcart__user=user)
-                elif is_in_shopping_cart == '0':
+                elif is_in_shopping_cart == FALSE:
                     queryset = queryset.exclude(shoppingcart__user=user)
         return queryset
 
@@ -227,9 +229,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         if name is not None:
             queryset = queryset.filter(name=name)
         return queryset
-
-
-
 
 
 class ShoppingCartViewSet(ShoppingCartFavoriteViewSetMixin):

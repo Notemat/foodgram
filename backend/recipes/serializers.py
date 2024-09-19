@@ -1,9 +1,9 @@
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from recipes.models import Recipe
 
 
-class RecipeReadShortSerializer(serializers.ModelSerializer):
+class RecipeReadShortSerializer(ModelSerializer):
     """Сериализатор для короткого чтения рецепта."""
 
     class Meta:

@@ -30,4 +30,4 @@ class AdminTagsRecipeForm(forms.ModelForm):
 
     class Meta:
         model = Recipe
-        fields = ('name', 'tags', 'cooking_time', 'text', 'image', 'author')
+        fields = ('name', 'tags', 'cooking_time', 'text', 'image', 'author',)

@@ -2,7 +2,9 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from recipes.forms import AdminTagsRecipeForm
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, Tag
+)
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -24,12 +26,21 @@ class RecipeAdmin(admin.ModelAdmin):
         'text',
         'cooking_time', 'pub_date'
     )
-    search_fields = ('name',)
+    readonly_fields = ('favorites_count',)
+    list_filter = ('tags',)
+    search_fields = ('name', 'author')
+
+    @admin.display(description='Добавлено в избранное')
+    def favorites_count(self, obj):
+        favorite = Favorite.objects.filter(recipe=obj).count()
+        return f'{favorite} раз'
 
     @admin.display(description='Изображение')
     def image_tag(self, obj):
         if obj.image:
-            return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
+            return format_html(
+                '<img src="{}" width="100" height="100" />', obj.image.url
+            )
         return 'Изображение отсутствует'
 
 
