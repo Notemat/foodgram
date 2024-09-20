@@ -24,6 +24,12 @@ class User(AbstractUser):
         ordering = ['username']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        constraints = [
+            models.UniqueConstraint(fields=['email'], name='unique_email'),
+            models.UniqueConstraint(
+                fields=['username'], name='unique_username'
+            ),
+        ]
 
 
 class Subscribe(models.Model):

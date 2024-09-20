@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.validators import UniqueValidator
 
 from recipes.serializers import RecipeReadShortSerializer
 from users.constants import (
@@ -125,8 +126,20 @@ class RegisterDataSerializer(
 ):
     """Сериализатор для данных регистрации."""
 
-    email = serializers.EmailField(max_length=EMAIL_MAX_LENGTH)
-    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH)
+    email = serializers.EmailField(
+        max_length=EMAIL_MAX_LENGTH,
+        validators=[UniqueValidator(
+            queryset=User.objects.all(),
+            message="Этот email уже используется."
+        )]
+    )
+    username = serializers.CharField(
+        max_length=USERNAME_MAX_LENGTH,
+        validators=[UniqueValidator(
+            queryset=User.objects.all(),
+            message="Имя пользователя уже занято."
+        )]
+    )
     first_name = serializers.CharField(
         max_length=NAME_MAX_LENGTH, required=True
     )
@@ -139,26 +152,6 @@ class RegisterDataSerializer(
         fields = (
             'email', 'id', 'username', 'password', 'first_name', 'last_name',
         )
-
-    def validate(self, data):
-        """Проверка уникальности email и username."""
-        email = data.get('email')
-        username = data.get('username')
-
-        if User.objects.filter(username=username, email=email).exists():
-            return data
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                'Этот email уже используется под другим username.'
-            )
-
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                'Имя пользователя используется под другим email.'
-            )
-
-        return data
 
     def create(self, validated_data):
         """Создание или получение пользователя."""

@@ -22,10 +22,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
     readonly_fields = ('image_tag',)
     list_display = (
-        'author', 'name', 'image_tag',
-        'text',
-        'cooking_time', 'pub_date'
-    )
+        'author', 'name', 'image_tag','pub_date')
     readonly_fields = ('favorites_count',)
     list_filter = ('tags',)
     search_fields = ('name', 'author')
