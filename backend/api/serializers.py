@@ -130,10 +130,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Поле тэгов является обязательным при обновлении.'
                 )
-            if 'recipe_ingredients' not in attrs:
-                raise serializers.ValidationError(
-                    'Поле ингредиентов является обязательным при обновлении.'
-                )
         return super().validate(attrs)
 
     def validate_ingredients(self, ingredients):
@@ -176,26 +172,33 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def add_ingredients_to_recipe(self, recipe, ingredients_data):
+        """Добавляем ингредиенты в рецепт."""
+        for ingredient_data in ingredients_data:
+            ingredient_instance = ingredient_data.get('ingredient')
+            if isinstance(ingredient_instance, dict):
+                ingredient_instance = ingredient_instance.get('id')
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=ingredient_data['ingredient'],
+                amount=ingredient_data['amount']
+            )
+
     def create(self, validated_data):
         """Сохраняем ингридиенты и тэги."""
         ingredients_data = validated_data.pop('recipe_ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
 
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_data['ingredient'],
-                amount=ingredient_data['amount']
-            )
         recipe.tags.set(tags_data)
+        self.add_ingredients_to_recipe(recipe, ingredients_data)
 
         return recipe
 
     def update(self, instance, validated_data):
         """Метод для обновления рецепта."""
-        ingredients_data = validated_data.pop('recipe_ingredients')
-        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('recipe_ingredients', None)
+        tags_data = validated_data.pop('tags', None)
 
         instance.name = validated_data.get('name', instance.name)
         instance.image = validated_data.get('image', instance.image)
@@ -208,12 +211,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         if tags_data is not None:
             instance.tags.set(tags_data)
 
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=instance,
-                ingredient=ingredient_data['ingredient'],
-                amount=ingredient_data['amount']
-            )
+        if ingredients_data is not None:
+            instance.recipe_ingredients.all().delete()
+            self.add_ingredients_to_recipe(instance, ingredients_data)
         return instance
 
 
@@ -223,7 +223,7 @@ class ShoppingCartSerializer(ShoppingCartFavoriteSerializerMixin):
     class Meta:
         model = ShoppingCart
         fields = ('recipe',)
-    
+
     def create(self, validated_data):
         return self.create_recipe_and_user(ShoppingCart, validated_data)
 
