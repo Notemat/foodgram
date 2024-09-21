@@ -23,7 +23,7 @@ class TestUser:
     )
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_unauthorized(self):
         """
         Фикстура неавторизированного клиента
         и данных для регистрации

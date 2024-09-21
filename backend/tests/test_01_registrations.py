@@ -30,10 +30,14 @@ class TestUserRegistration:
         assert 'email' in response.data
         assert 'username' in response.data
 
-    def test_registration_without_password(self, client, user_data):
+    def test_registration_without_field(self, client, user_data):
         """Проверяем, что нельзя зарегистрироваться с незаполненым полем."""
-        user_data_without_password = user_data.copy()
-        user_data_without_password.pop('password')
-        response = client.post(self.URL_SIGNUP, user_data_without_password)
-        assert response.status_code == 400
-        assert 'password' in response.data
+        required_fields = [
+            'email', 'password', 'first_name', 'last_name', 'username'
+        ]
+        for field in required_fields:
+            data = user_data.copy()
+            data.pop(field)
+            response = client.post(self.URL_SIGNUP, data)
+            assert response.status_code == 400
+            assert 'Обязательное поле.' in str(response.data[field][0])

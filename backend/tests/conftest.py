@@ -16,6 +16,16 @@ CURRENT_PASSWORD = 'Qwerty321'
 
 
 @pytest.fixture()
+def unauthorized_client():
+    """
+    Фикстура неавторизированного клиента
+    и данных для регистрации
+    """
+    client = APIClient()
+    return client
+
+
+@pytest.fixture()
 def authenticated_client():
     """Фикстура авторизированного клиента."""
     client = APIClient()
