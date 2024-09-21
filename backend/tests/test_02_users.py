@@ -188,3 +188,17 @@ class TestUser:
             }
         )
         assert response.status_code == 401
+
+    def test_delete_avatar(self, authenticated_client):
+        """Проверяем возможность удаления аватара."""
+        response = authenticated_client.delete(self.PUT_AVATAR_URL,)
+        assert response.status_code == 204
+        assert 'message' in response.data
+
+    def test_not_authenticated_cant_delete_avatar(self):
+        """
+        Проверяем, что неавторизованный пользователь
+        не может удалять аватар.
+        """
+        response = self.client.delete(self.PUT_AVATAR_URL,)
+        assert response.status_code == 401
