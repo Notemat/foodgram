@@ -128,17 +128,15 @@ class CustomLogoutView(views.APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data.get('refresh')
-            if refresh_token:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
+            token = Token.objects.get(user=request.user)
+            token.delete()
             return Response(
                 {'detail': 'Токен удален.'},
                 status=status.HTTP_204_NO_CONTENT
             )
-        except Exception as e:
+        except Token.DoesNotExist:
             return Response(
-                {'detail': str(e)},
+                {'detail': 'Токен не найден.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
