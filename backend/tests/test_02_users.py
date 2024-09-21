@@ -36,15 +36,16 @@ class TestUser:
             'last_name': 'Иванов',
             'password': 'Qwerty123'
         }
-    
+
     @pytest.fixture(autouse=True)
     def setup_authenticated_client(self, authenticated_client):
         """
         Вызываем фикстуру авторизованного клиента.
-        
+
         Сохраняем значения как атрибуты.
         """
-        self.authenticated_client, self.authenticated_data = authenticated_client
+        self.authenticated_client, self.authenticated_data = \
+            authenticated_client
 
     def test_successful_login(self):
         """Проверяем возможность авторизации с корректными данными."""
