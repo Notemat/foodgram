@@ -130,6 +130,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Поле тэгов является обязательным при обновлении.'
                 )
+            if 'recipe_ingredients' not in attrs:
+                raise serializers.ValidationError(
+                    'Поле ингредиентов является обязательным при обновлении.'
+                )
         return super().validate(attrs)
 
     def validate_ingredients(self, ingredients):
