@@ -48,6 +48,7 @@ class TestUser:
 
     def test_successful_login(self):
         """Проверяем возможность авторизации с корректными данными."""
+        self.client.post(self.URL_SIGNUP, self.user_data)
         response = self.client.post(
             self.URL_GET_LOGIN,
             {
@@ -60,6 +61,7 @@ class TestUser:
 
     def test_login_with_invalid_password(self):
         """Проверяем возможность авторизации с некорректными данными."""
+        self.client.post(self.URL_SIGNUP, self.user_data)
         response = self.client.post(
             self.URL_GET_LOGIN,
             {'email': self.user_data['email'], 'password': self.WRONG_PASSWORD}
@@ -96,5 +98,6 @@ class TestUser:
         Проверяем получение информации о своем профиле
         неавторизированным пользователем.
         """
+        self.client.post(self.URL_SIGNUP, self.user_data)
         response = self.client.get(self.USER_ME_URL)
         assert response.status_code == 401
