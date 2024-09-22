@@ -51,17 +51,8 @@ class TestRecipe:
     def setup_data(self):
         """Данные для создания рецепта."""
         return {
-            'ingredients': [
-                {
-                    'id': 1,
-                    'amount': 10
-                }
-            ],
-            'tags':
-            [
-                1,
-                2
-            ],
+            'ingredients': [{'id': 1, 'amount': 10}],
+            'tags': [1, 2],
             'image': self.RECIPE_IMAGE,
             'name': 'string01',
             'text': 'string01',
@@ -71,16 +62,8 @@ class TestRecipe:
     @pytest.fixture
     def update_data(self):
         return {
-            'ingredients': [
-                {
-                    'id': 2,
-                    'amount': 6
-                }
-            ],
-            'tags':
-            [
-                1
-            ],
+            'ingredients': [{'id': 1, 'amount': 6}],
+            'tags': [1],
             'name': 'string02',
             'text': 'string02',
             'cooking_time': 5
@@ -164,7 +147,7 @@ class TestRecipe:
             response = client.get(f'{self.RECIPE_URL}{recipe_id}/')
             assert response.status_code == 200
             assert response.data['id'] == recipe_id
-    
+
     def test_putch_recipe(self, create_recipe, update_data):
         """Проверяем возможность обновления рецепта."""
         print(f'created_data  - {create_recipe.data}')
@@ -172,7 +155,7 @@ class TestRecipe:
         print(f'second_ingredient - {Ingredient.objects.filter(id=2)}')
         recipe_id = create_recipe.data['id']
         response = self.authenticated_client.patch(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         print(response.data)
         assert response.status_code == 200
