@@ -168,7 +168,9 @@ class SubscribeViewSet(
         """Получаем подписки с возможностью лимита на количество рецептов."""
         queryset = self.get_queryset()
         recipe_limit = self.request.query_params.get('recipe_limit')
-        serializer = self.get_serializer(queryset, many=True, context={'recipe_limit': recipe_limit})
+        serializer = self.get_serializer(
+            queryset, many=True, context={'recipe_limit': recipe_limit}
+        )
         return Response(serializer.data)
 
     def perform_create(self, serializer):
@@ -185,6 +187,9 @@ class SubscribeViewSet(
             user=self.request.user, subscription=subscription
         )
         if not subscribe:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Вы не подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         subscribe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

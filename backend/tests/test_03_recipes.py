@@ -78,26 +78,6 @@ class TestRecipe:
         )
         return response
 
-    @pytest.fixture
-    def create_recipes(self, setup_data, setup_authenticated_client):
-        """Создаем рецепт в базе данных."""
-        recipes = []
-
-        first_recipe = setup_data.copy()
-        first_recipe['name'] = 'first_recipe'
-        first_response = self.authenticated_client.post(
-            self.RECIPE_URL, first_recipe, format=self.FORMAT
-        )
-        recipes.append(first_response.data)
-
-        second_recipe = setup_data.copy()
-        second_recipe['name'] = 'second_recipe'
-        second_response = self.authenticated_client.post(
-            self.RECIPE_URL, second_recipe, format=self.FORMAT
-        )
-        recipes.append(second_response.data)
-        return recipes
-
     def test_create_recipe(self, setup_data):
         """Тестируем создание рецепта авторизированным пользователем."""
         response = self.authenticated_client.post(

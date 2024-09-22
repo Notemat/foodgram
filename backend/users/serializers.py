@@ -190,19 +190,21 @@ class SubscribeSerializer(serializers.ModelSerializer):
         subscription = self.context['view'].kwargs.get('user_id')
         if user == get_object_or_404(User, id=subscription):
             raise serializers.ValidationError(
-                'Нельзя подписываться на самого себя.'
+                {'errors': 'Нельзя подписываться на самого себя.'}
             )
         if Subscribe.objects.filter(
             user=user, subscription=get_object_or_404(User, id=subscription)
         ).exists():
             raise serializers.ValidationError(
-                'Нельзя подписываться на одного человека дважды.'
+                {'errors': 'Нельзя подписываться на одного человека дважды.'}
             )
 
         return data
 
     def get_recipes(self, obj):
-        """Получаем ограниченное количество рецептов подписанных пользователей."""
+        """
+        Получаем ограниченное количество рецептов подписанных пользователей.
+        """
         recipe_limit = self.context.get('recipe_limit')
         recipes_queryset = obj.subscription.recipes.all()
         if recipe_limit:
@@ -220,9 +222,11 @@ class SubscribeSerializer(serializers.ModelSerializer):
             try:
                 recipes_limit = int(recipes_limit)
                 if recipes_limit < 0:
-                    raise ValidationError('recipes_limit must be a positive integer.')
+                    raise ValidationError(
+                        'recipes_limit должно быть больше нуля.'
+                    )
             except ValueError:
-                raise ValidationError('recipes_limit must be an integer.')
+                raise ValidationError('recipes_limit должно быть числом.')
 
             data['recipes'] = data['recipes'][:recipes_limit]
 

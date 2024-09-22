@@ -13,6 +13,15 @@ from recipes.models import Tag, Ingredient, Recipe, Favorite, ShoppingCart, User
 URL_SIGNUP = '/api/users/'
 URL_GET_LOGIN = '/api/auth/token/login/'
 CURRENT_PASSWORD = 'Qwerty321'
+RECIPE_URL = '/api/recipes/'
+RECIPE_IMAGE = (
+    "data:image/png;base64,"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///"
+    "9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByx"
+    "OyYQAAAABJRU5ErkJggg=="
+)
+FORMAT = 'json'
+RECIPES_COUNT = 2
 
 
 @pytest.fixture()
@@ -97,3 +106,25 @@ def create_tags():
     ]
     for tag in tags_data:
         Tag.objects.get_or_create(**tag)
+
+
+@pytest.fixture
+def create_recipes(setup_data, authenticated_client):
+    """Создаем рецепты в базе данных."""
+    client, authenticated_data = authenticated_client
+    recipes = []
+
+    first_recipe = setup_data.copy()
+    first_recipe['name'] = 'first_recipe'
+    first_response = client.post(
+        RECIPE_URL, first_recipe, format=FORMAT
+    )
+    recipes.append(first_response.data)
+
+    second_recipe = setup_data.copy()
+    second_recipe['name'] = 'second_recipe'
+    second_response = client.post(
+        RECIPE_URL, second_recipe, format=FORMAT
+    )
+    recipes.append(second_response.data)
+    return recipes
