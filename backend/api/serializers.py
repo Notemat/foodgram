@@ -247,7 +247,7 @@ class ShoppingCartSerializer(ShoppingCartFavoriteSerializerMixin):
         """Валидация подписки на пользователя."""
         return self.validate_recipe_and_user(
             ShoppingCart,
-            'Этот рецепт уже в списке покупок.'
+            {'errors': 'Этот рецепт уже в списке покупок.'}
         )
 
 
@@ -265,5 +265,5 @@ class FavoriteSerializer(ShoppingCartFavoriteSerializerMixin):
         """Валидация подписки на пользователя."""
         return self.validate_recipe_and_user(
             Favorite,
-            'Этот рецепт уже в избранном.'
+            {'errors': 'Этот рецепт уже в избранном.'}
         )

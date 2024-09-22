@@ -60,6 +60,13 @@ def authenticated_client():
 
 
 @pytest.fixture()
+def first_user_id():
+    """Получаем id первого пользователя"""
+    first_user = User.objects.order_by('id').first()
+    return first_user.id
+
+
+@pytest.fixture()
 def second_authenticated_client():
     """Фикстура второго авторизированного клиента."""
     client = APIClient()
@@ -82,6 +89,13 @@ def second_authenticated_client():
     token = login_response.data['auth_token']
     client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
     return client, second_authenticated_data
+
+
+@pytest.fixture()
+def second_user_id():
+    """Получаем id второго пользователя."""
+    second_user = User.objects.latest('id')
+    return second_user.id
 
 
 @pytest.fixture()
@@ -108,8 +122,23 @@ def create_tags():
         Tag.objects.get_or_create(**tag)
 
 
+@pytest.fixture()
+def setup_data():
+    """Данные для создания рецепта."""
+    return {
+        'ingredients': [{'id': 1, 'amount': 10}],
+        'tags': [1, 2],
+        'image': RECIPE_IMAGE,
+        'name': 'string01',
+        'text': 'string01',
+        'cooking_time': 1
+    }
+
+
 @pytest.fixture
-def create_recipes(setup_data, authenticated_client):
+def create_recipes(
+    create_ingredients, create_tags, setup_data, authenticated_client
+):
     """Создаем рецепты в базе данных."""
     client, authenticated_data = authenticated_client
     recipes = []
@@ -128,3 +157,17 @@ def create_recipes(setup_data, authenticated_client):
     )
     recipes.append(second_response.data)
     return recipes
+
+
+@pytest.fixture()
+def first_recipe_id():
+    """Получаем id второго рецепта."""
+    first_recipe = Recipe.objects.order_by('id').first()
+    return first_recipe.id
+
+
+@pytest.fixture()
+def second_recipe_id():
+    """Получаем id второго рецепта."""
+    second_recipe = Recipe.objects.latest('id')
+    return second_recipe.id

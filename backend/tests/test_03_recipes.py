@@ -45,18 +45,6 @@ class TestRecipe:
         """Вызываем фикстуру тэгов."""
         self.tags_data = create_tags
 
-    @pytest.fixture(autouse=True)
-    def setup_data(self):
-        """Данные для создания рецепта."""
-        return {
-            'ingredients': [{'id': 1, 'amount': 10}],
-            'tags': [1, 2],
-            'image': self.RECIPE_IMAGE,
-            'name': 'string01',
-            'text': 'string01',
-            'cooking_time': 1
-        }
-
     @pytest.fixture
     def update_data(self):
         return {

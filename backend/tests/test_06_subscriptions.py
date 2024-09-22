@@ -1,7 +1,5 @@
 import pytest
 
-from users.models import User
-
 
 @pytest.mark.django_db
 class TestSubscriptions:
@@ -31,21 +29,17 @@ class TestSubscriptions:
             second_authenticated_client
 
     @pytest.fixture
-    def create_subscription(self):
+    def create_subscription(self, second_user_id):
         """Создаем подписку на пользователя."""
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         return response
 
-    def test_subscribe_user(self):
+    def test_subscribe_user(self, second_user_id):
         """Проверяем возможность подписаться на пользователя."""
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 201
         assert response.data['username'] == (
@@ -56,39 +50,33 @@ class TestSubscriptions:
         )
         assert response.data['is_subscribed'] is True
 
-    def test_not_subscribe_himself(self):
+    def test_not_subscribe_himself(self, first_user_id):
         """Проверяем невозможность подписаться на самого себя."""
-        subscriber = User.objects.order_by('id').first()
-        subscriber_id = subscriber.id
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{subscriber_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{first_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 400
         assert 'errors' in response.data
 
-    def test_unauthorized_user_cant_subscribe(self, client):
+    def test_unauthorized_user_cant_subscribe(self, client, second_user_id):
         """
         Проверяем, что неавторизованный пользователь не может подписаться.
         """
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = client.post(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data
 
-    def test_subscribe_twice(self, create_subscription):
+    def test_subscribe_twice(self, create_subscription, second_user_id):
         """
         Проверяем, что невозможно подписаться дважды
         на одного пользователя.
         """
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = create_subscription
         assert response.status_code == 201
         second_response = self.authenticated_client.post(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert second_response.status_code == 400
         assert 'errors' in second_response.data
@@ -108,38 +96,32 @@ class TestSubscriptions:
         assert response.status_code == 401
         assert 'detail' in response.data
 
-    def test_delete_subscribe(self, create_subscription):
+    def test_delete_subscribe(self, create_subscription, second_user_id):
         """Проверяем возможность отписаться от пользователя."""
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = self.authenticated_client.delete(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 204
         assert response.data is None
 
-    def test_delete_not_subscriber(self):
+    def test_delete_not_subscriber(self, second_user_id):
         """
         Проверяем, что нельзя отписаться от пользователя
         на которого не был подписан.
         """
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = self.authenticated_client.delete(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 400
         assert 'errors' in response.data
 
-    def test_unauthorized_user_cant_delete(self, client):
+    def test_unauthorized_user_cant_delete(self, client, second_user_id):
         """
         Проверяем, что неавторизованный пользователь
         не может отписываться.
         """
-        subscribe = User.objects.latest('id')
-        subscribe_id = subscribe.id
         response = client.delete(
-            f'{self.USERS_URL}{subscribe_id}{self.SUBSCRIBE_URL}'
+            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data

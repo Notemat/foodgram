@@ -43,6 +43,8 @@ class ShoppingCartFavoriteSerializerMixin(serializers.ModelSerializer):
 class ShoppingCartFavoriteViewSetMixin(
     CreateModelMixin, DestroyModelMixin, viewsets.GenericViewSet
 ):
+    """Миксин для вьюсетов списка покупок и избранного."""
+
     permission_classes = (IsAuthenticated, )
 
     def create_from_mixin(self, request, *args, **kwargs):
@@ -59,12 +61,15 @@ class ShoppingCartFavoriteViewSetMixin(
         serializer.save(user=self.request.user, recipe=recipe)
 
     def delete_from_mixin(self, request, model_class, *args, **kwargs):
-        """Удаляем объект из списка покупок."""
+        """Удаляем объект из списка."""
         recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         is_in_shopping_cart = model_class.objects.filter(
             user=self.request.user, recipe=recipe
         )
         if not is_in_shopping_cart:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Рецепт еще не добавлен добавлен.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         is_in_shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
