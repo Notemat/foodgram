@@ -65,15 +65,17 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         """Получаем объекты ингридиента."""
-        recipe_ingredients = obj.recipe_ingredients.all()
+        recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj)
         return [
             {
-                'id': ingredient.ingredient.id,
-                'name': ingredient.ingredient.name,
-                'measurement_unit': ingredient.ingredient.measurement_unit,
-                'amount': ingredient.amount
+                'id': recipe_ingredient.ingredient.id,
+                'name': recipe_ingredient.ingredient.name,
+                'measurement_unit': (
+                    recipe_ingredient.ingredient.measurement_unit
+                ),
+                'amount': recipe_ingredient.amount
             }
-            for ingredient in recipe_ingredients
+            for recipe_ingredient in recipe_ingredients
         ]
 
     def get_is_favorited(self, obj):
@@ -97,7 +99,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(
         many=True,
         required=True,
-        source='recipe_ingredients'
     )
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -124,35 +125,49 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Общая валидация полей."""
         request = self.context.get('request')
+
         if request.method == 'PATCH':
-            print(attrs)
             if 'tags' not in attrs:
                 raise serializers.ValidationError(
                     'Поле тэгов является обязательным при обновлении.'
                 )
-            if 'recipe_ingredients' not in attrs:
+            if 'ingredients' not in attrs:
                 raise serializers.ValidationError(
                     'Поле ингредиентов является обязательным при обновлении.'
                 )
         return super().validate(attrs)
 
     def validate_ingredients(self, ingredients):
-        """Валидация ингредиентов."""
+        """Валидация ингредиентов и количества (amount)."""
         if not ingredients:
             raise serializers.ValidationError(
                 'Поле ингредиенты не может быть пустым.'
             )
-        unique_ingredients = []
-        for ingredient in ingredients:
-            if ingredient['amount'] < 1:
-                raise serializers.ValidationError(
-                    'Ингредиентов не может быть меньше 1.'
-                )
+        unique_ingredients = set()
+        errors = [{} for _ in range(len(ingredients))]
+
+        for index, ingredient in enumerate(ingredients):
+            ingredient_errors = {}
+
             if ingredient['ingredient'] in unique_ingredients:
-                raise serializers.ValidationError(
-                    'Ингредиенты не должны повторяться.'
+                ingredient_errors['ingredient'] = (
+                    'Ингредиенты не должны повторяться'
                 )
-            unique_ingredients.append(ingredient['ingredient'])
+            else:
+                unique_ingredients.add(ingredient['ingredient'])
+            if 'amount' not in ingredient:
+                ingredient_errors['amount'] = (
+                    'Поле amount является обязательным.'
+                )
+            elif ingredient['amount'] < 1:
+                ingredient_errors['amount'] = (
+                    'Убедитесь, что это значение больше либо равно 1.'
+                )
+            if ingredient_errors:
+                errors[index] = ingredient_errors
+        if any(errors):
+            raise serializers.ValidationError(errors)
+
         return ingredients
 
     def validate_tags(self, tags):
@@ -179,9 +194,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def add_ingredients_to_recipe(self, recipe, ingredients_data):
         """Добавляем ингредиенты в рецепт."""
         for ingredient_data in ingredients_data:
-            ingredient_instance = ingredient_data.get('ingredient')
-            if isinstance(ingredient_instance, dict):
-                ingredient_instance = ingredient_instance.get('id')
             RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient=ingredient_data['ingredient'],
@@ -190,7 +202,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Сохраняем ингридиенты и тэги."""
-        ingredients_data = validated_data.pop('recipe_ingredients')
+        ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
 
@@ -201,7 +213,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Метод для обновления рецепта."""
-        ingredients_data = validated_data.pop('recipe_ingredients', None)
+        ingredients_data = validated_data.pop('ingredients', None)
         tags_data = validated_data.pop('tags', None)
 
         instance.name = validated_data.get('name', instance.name)
@@ -216,7 +228,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             instance.tags.set(tags_data)
 
         if ingredients_data is not None:
-            instance.recipe_ingredients.all().delete()
+            RecipeIngredient.objects.filter(recipe=instance).delete()
             self.add_ingredients_to_recipe(instance, ingredients_data)
         return instance
 
