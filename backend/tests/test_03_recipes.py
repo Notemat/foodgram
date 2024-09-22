@@ -26,6 +26,16 @@ class TestRecipe:
             authenticated_client
 
     @pytest.fixture(autouse=True)
+    def setup_second_authenticated_client(self, second_authenticated_client):
+        """
+        Вызываем фикстуру второго авторизованного клиента.
+
+        Сохраняем значения как атрибуты.
+        """
+        self.second_authenticated_client, self.second_authenticated_data = \
+            second_authenticated_client
+
+    @pytest.fixture(autouse=True)
     def create_ingredients(self):
         """Создаем тэги и ингредиенты в базе данных."""
         ingredients_data = [
@@ -58,7 +68,7 @@ class TestRecipe:
             'text': 'string01',
             'cooking_time': 1
         }
-    
+
     @pytest.fixture
     def update_data(self):
         return {
@@ -150,14 +160,69 @@ class TestRecipe:
 
     def test_putch_recipe(self, create_recipe, update_data):
         """Проверяем возможность обновления рецепта."""
-        print(f'created_data  - {create_recipe.data}')
-        print(f'update_data -  {update_data}')
-        print(f'second_ingredient - {Ingredient.objects.filter(id=2)}')
         recipe_id = create_recipe.data['id']
         response = self.authenticated_client.patch(
             f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
-        print(response.data)
         assert response.status_code == 200
         assert response.data['name'] == update_data['name']
 
+    def test_not_author_cant_putch_recipe(self, create_recipe, update_data):
+        """Проверяем, что пользователь не может обновлять чужие рецепты."""
+        recipe_id = create_recipe.data['id']
+        response = self.second_authenticated_client.patch(
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+        )
+        assert response.status_code == 403
+
+    def test_unauthorized_user_cant_putch_recipe(
+        self, client, create_recipe, update_data
+    ):
+        """
+        Проверяем, что неавторизированный пользователь
+        не может обновлять чужие рецепты.
+        """
+        recipe_id = create_recipe.data['id']
+        response = client.patch(
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+        )
+        assert response.status_code == 401
+
+    def test_delete_recipe(self, create_recipe, update_data):
+        """Проверяем возможность удаления рецепта."""
+        recipe_id = create_recipe.data['id']
+        response = self.authenticated_client.delete(
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+        )
+        assert response.status_code == 204
+        assert response.data is None
+
+    def test_not_author_cant_delete_recipe(self, create_recipe, update_data):
+        """Проверяем, что пользователь не может удалить чужой рецепт."""
+        recipe_id = create_recipe.data['id']
+        response = self.second_authenticated_client.delete(
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+        )
+        assert response.status_code == 403
+
+    def test_unauthorized_user_cant_delete_recipe(
+        self, client, create_recipe, update_data
+    ):
+        """
+        Проверяем, что неавторизированный пользователь
+        не может удалить чужой рецепт.
+        """
+        recipe_id = create_recipe.data['id']
+        response = client.delete(
+            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+        )
+        assert response.status_code == 401
+
+    def test_get_link(self, create_recipe):
+        """Проверяем доступность короткой ссылки на рецепт."""
+        recipe_id = create_recipe.data['id']
+        response = self.authenticated_client.get(
+            f'{self.RECIPE_URL}{recipe_id}/get-link/'
+        )
+        assert response.status_code == 200
+        assert 'short-link' in response.data

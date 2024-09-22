@@ -50,26 +50,26 @@ def authenticated_client():
     return client, authenticated_data
 
 
-# @pytest.fixture()
-# def second_authenticated_client():
-#     """Фикстура второго авторизированного клиента."""
-#     client = APIClient()
-#     second_authenticated_data = {
-#         'email': 'test_user_03@yandex.ru',
-#         'username': 'test_user_03',
-#         'first_name': 'Николай',
-#         'last_name': 'Романов',
-#         'password': CURRENT_PASSWORD
-#     }
-#     client.post(
-#         URL_SIGNUP, second_authenticated_data)
-#     login_response = client.post(
-#         URL_GET_LOGIN,
-#         {
-#             'email': second_authenticated_data['email'],
-#             'password': second_authenticated_data['password']
-#         }
-#     )
-#     token = login_response.data['auth_token']
-#     client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
-#     return client
+@pytest.fixture()
+def second_authenticated_client():
+    """Фикстура второго авторизированного клиента."""
+    client = APIClient()
+    second_authenticated_data = {
+        'email': 'test_user_03@yandex.ru',
+        'username': 'test_user_03',
+        'first_name': 'Николай',
+        'last_name': 'Романов',
+        'password': CURRENT_PASSWORD
+    }
+    client.post(
+        URL_SIGNUP, second_authenticated_data)
+    login_response = client.post(
+        URL_GET_LOGIN,
+        {
+            'email': second_authenticated_data['email'],
+            'password': second_authenticated_data['password']
+        }
+    )
+    token = login_response.data['auth_token']
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
+    return client, second_authenticated_data
