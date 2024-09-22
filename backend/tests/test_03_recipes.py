@@ -1,6 +1,6 @@
 import pytest
 
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Recipe
 
 
 @pytest.mark.django_db
@@ -36,26 +36,14 @@ class TestRecipe:
             second_authenticated_client
 
     @pytest.fixture(autouse=True)
-    def create_ingredients(self):
-        """Создаем тэги и ингредиенты в базе данных."""
-        ingredients_data = [
-            {'name': 'ingredient01', 'measurement_unit': 'measurement_unit01'},
-            {'name': 'ingredient02', 'measurement_unit': 'measurement_unit02'},
-            {'name': 'ingredient03', 'measurement_unit': 'measurement_unit03'},
-        ]
-        for ingredient in ingredients_data:
-            Ingredient.objects.get_or_create(**ingredient)
+    def create_ingredients(self, create_ingredients):
+        """Вызываем фикстуру ингредиентов."""
+        self.ingredients_data = create_ingredients
 
     @pytest.fixture(autouse=True)
-    def create_tags(self):
-        """Создаем тэги и ингредиенты в базе данных."""
-        tags_data = [
-            {"name": "tag01", "slug": "tag01"},
-            {"name": "tag02", "slug": "tag02"},
-            {"name": "tag03", "slug": "tag03"},
-        ]
-        for tag in tags_data:
-            Tag.objects.get_or_create(**tag)
+    def create_tags(self, create_tags):
+        """Вызываем фикстуру тэгов."""
+        self.tags_data = create_tags
 
     @pytest.fixture(autouse=True)
     def setup_data(self):
@@ -148,7 +136,7 @@ class TestRecipe:
         assert 'results' in response.data
 
         recipes = response.data['results']
-        assert len(recipes) >= self.RECIPES_COUNT
+        assert len(recipes) == self.RECIPES_COUNT
 
     def test_get_recipe(self, client, create_recipes):
         """Проверяем доступность конкретного рецепта."""

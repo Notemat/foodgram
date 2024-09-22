@@ -73,3 +73,27 @@ def second_authenticated_client():
     token = login_response.data['auth_token']
     client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
     return client, second_authenticated_data
+
+
+@pytest.fixture()
+def create_ingredients():
+    """Создаем ингредиенты в базе данных."""
+    ingredients_data = [
+        {'name': 'ingredient01', 'measurement_unit': 'measurement_unit01'},
+        {'name': 'ingredient02', 'measurement_unit': 'measurement_unit02'},
+        {'name': 'other_ingredient', 'measurement_unit': 'measurement_unit03'},
+    ]
+    for ingredient in ingredients_data:
+        Ingredient.objects.get_or_create(**ingredient)
+
+
+@pytest.fixture()
+def create_tags():
+    """Создаем тэги в базе данных."""
+    tags_data = [
+        {"name": "tag01", "slug": "tag01"},
+        {"name": "tag02", "slug": "tag02"},
+        {"name": "tag03", "slug": "tag03"},
+    ]
+    for tag in tags_data:
+        Tag.objects.get_or_create(**tag)
