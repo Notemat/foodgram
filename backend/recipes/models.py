@@ -1,11 +1,11 @@
-import string
 import random
+import string
+
 from django.db import models
 
-from recipes.constants import (
-    MAX_LENGTH_NAME, MAX_LENGTH_INGREDIENT, MAX_LENGTH_LINK,
-    MAX_LENGTH_TAGS, MAX_LENGTH_UNIT
-)
+from recipes.constants import (MAX_LENGTH_INGREDIENT, MAX_LENGTH_LINK,
+                               MAX_LENGTH_NAME, MAX_LENGTH_TAGS,
+                               MAX_LENGTH_UNIT)
 from users.models import User
 
 
@@ -18,7 +18,9 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор'
     )
-    name = models.CharField(max_length=MAX_LENGTH_NAME, verbose_name='Название')
+    name = models.CharField(
+        max_length=MAX_LENGTH_NAME, verbose_name='Название'
+    )
     image = models.ImageField(
         upload_to='reciepes/images/',
         null=True,

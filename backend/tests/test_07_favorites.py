@@ -1,6 +1,6 @@
 import pytest
 
-from tests.constants import RECIPE_URL, FAVORITE_URL
+from tests.constants import FAVORITE_URL, RECIPE_URL
 
 
 @pytest.mark.django_db

@@ -1,31 +1,25 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
+from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.permissions import (
-    SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
-)
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.constants import (
-    FALSE, LINE_SPACING, START_Y, TEXT_FONT_SIZE,
-    TRUE, TITLE_FONT_SIZE, TEXT_X, TITLE_X, TITLE_Y
-)
+from api.constants import (FALSE, LINE_SPACING, START_Y, TEXT_FONT_SIZE,
+                           TEXT_X, TITLE_FONT_SIZE, TITLE_X, TITLE_Y, TRUE)
 from api.mixins import ShoppingCartFavoriteViewSetMixin
-from api.serializers import (
-    FavoriteSerializer, IngredientSerializer, RecipeReadSerializer,
-    RecipeWriteSerializer, ShoppingCartSerializer, TagSerializer
-)
 from api.permissions import AuthorOrReadOnlyPermission
-from recipes.models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
-)
+from api.serializers import (FavoriteSerializer, IngredientSerializer,
+                             RecipeReadSerializer, RecipeWriteSerializer,
+                             ShoppingCartSerializer, TagSerializer)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 
 
 @api_view(['GET'])

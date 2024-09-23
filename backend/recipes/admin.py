@@ -2,9 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from recipes.forms import AdminTagsRecipeForm
-from recipes.models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient, Tag
-)
+from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -22,7 +20,8 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
     readonly_fields = ('image_tag',)
     list_display = (
-        'author', 'name', 'image_tag','pub_date')
+        'author', 'name', 'image_tag', 'pub_date'
+    )
     readonly_fields = ('favorites_count',)
     list_filter = ('tags',)
     search_fields = ('name', 'author')

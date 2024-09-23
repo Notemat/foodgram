@@ -1,8 +1,7 @@
 import pytest
-
 from rest_framework.test import APIClient
 
-from tests.constants import CURRENT_PASSWORD, USER_URL, URL_GET_LOGIN
+from tests.constants import CURRENT_PASSWORD, URL_GET_LOGIN, USER_URL
 
 
 @pytest.mark.django_db

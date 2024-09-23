@@ -1,12 +1,10 @@
 import pytest
 from rest_framework.test import APIClient
 
-from recipes.models import Tag, Ingredient, Recipe, User
-from tests.constants import (
-    USER_URL, URL_GET_LOGIN, CURRENT_PASSWORD,
-    RECIPE_URL, RECIPE_IMAGE, FORMAT, FAVORITE_URL,
-    SHOPPING_CART_URL
-)
+from recipes.models import Ingredient, Recipe, Tag, User
+from tests.constants import (CURRENT_PASSWORD, FAVORITE_URL, FORMAT,
+                             RECIPE_IMAGE, RECIPE_URL, SHOPPING_CART_URL,
+                             URL_GET_LOGIN, USER_URL)
 
 
 @pytest.fixture()
@@ -171,6 +169,7 @@ def create_favorite(
         f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
     )
     return response
+
 
 @pytest.fixture
 def create_shopping_cart(

@@ -1,13 +1,12 @@
 import re
+
 from django.forms import ValidationError
 from rest_framework import serializers
 
 from api.mixins import ShoppingCartFavoriteSerializerMixin
-from recipes.models import (
-    Favorite, Ingredient, Recipe,
-    RecipeIngredient, ShoppingCart, Tag
-)
-from users.serializers import CustomUserSerializer, Base64ImageField
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.serializers import Base64ImageField, CustomUserSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):

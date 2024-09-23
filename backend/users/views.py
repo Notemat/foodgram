@@ -1,22 +1,18 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import status, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (IsAuthenticated, )
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
 
-from users.permissions import PostOrReadOnly
-from users.serializers import (
-    AvatarSerializer, ChangePasswordSerializer, CustomAuthTokenSerializer,
-    CustomUserSerializer, RegisterDataSerializer, SubscribeSerializer
-)
 from users.models import Subscribe, User
+from users.permissions import PostOrReadOnly
+from users.serializers import (AvatarSerializer, ChangePasswordSerializer,
+                               CustomAuthTokenSerializer, CustomUserSerializer,
+                               RegisterDataSerializer, SubscribeSerializer)
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):

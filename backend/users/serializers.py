@@ -1,18 +1,17 @@
 import base64
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
 
 from recipes.serializers import RecipeReadShortSerializer
-from users.constants import (
-    EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
-)
+from users.constants import (EMAIL_MAX_LENGTH, NAME_MAX_LENGTH,
+                             USERNAME_MAX_LENGTH)
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import Subscribe, User
 

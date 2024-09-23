@@ -1,12 +1,11 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, serializers, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-
-from recipes.serializers import RecipeReadShortSerializer
 from recipes.models import Recipe
+from recipes.serializers import RecipeReadShortSerializer
 
 
 class ShoppingCartFavoriteSerializerMixin(serializers.ModelSerializer):

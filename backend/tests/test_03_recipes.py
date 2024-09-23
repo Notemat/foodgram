@@ -1,7 +1,7 @@
 import pytest
 
 from recipes.models import Recipe
-from tests.constants import RECIPE_URL, FORMAT, RECIPES_COUNT
+from tests.constants import FORMAT, RECIPE_URL, RECIPES_COUNT
 
 
 @pytest.mark.django_db
