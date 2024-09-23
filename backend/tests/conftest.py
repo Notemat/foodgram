@@ -1,27 +1,12 @@
-from datetime import datetime, timedelta
-
 import pytest
-from django.conf import settings
-from django.test.client import Client
-from django.urls import reverse
-from django.utils import timezone
 from rest_framework.test import APIClient
 
-from recipes.models import Tag, Ingredient, Recipe, Favorite, ShoppingCart, User
-
-
-URL_SIGNUP = '/api/users/'
-URL_GET_LOGIN = '/api/auth/token/login/'
-CURRENT_PASSWORD = 'Qwerty321'
-RECIPE_URL = '/api/recipes/'
-RECIPE_IMAGE = (
-    "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///"
-    "9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByx"
-    "OyYQAAAABJRU5ErkJggg=="
+from recipes.models import Tag, Ingredient, Recipe, User
+from tests.constants import (
+    USER_URL, URL_GET_LOGIN, CURRENT_PASSWORD,
+    RECIPE_URL, RECIPE_IMAGE, FORMAT, FAVORITE_URL,
+    SHOPPING_CART_URL
 )
-FORMAT = 'json'
-RECIPES_COUNT = 2
 
 
 @pytest.fixture()
@@ -46,7 +31,7 @@ def authenticated_client():
         'password': CURRENT_PASSWORD
     }
     client.post(
-        URL_SIGNUP, authenticated_data)
+        USER_URL, authenticated_data)
     login_response = client.post(
         URL_GET_LOGIN,
         {
@@ -78,7 +63,7 @@ def second_authenticated_client():
         'password': CURRENT_PASSWORD
     }
     client.post(
-        URL_SIGNUP, second_authenticated_data)
+        USER_URL, second_authenticated_data)
     login_response = client.post(
         URL_GET_LOGIN,
         {
@@ -137,22 +122,25 @@ def setup_data():
 
 @pytest.fixture
 def create_recipes(
-    create_ingredients, create_tags, setup_data, authenticated_client
+    create_ingredients, create_tags, setup_data,
+    authenticated_client, second_authenticated_client
 ):
     """Создаем рецепты в базе данных."""
-    client, authenticated_data = authenticated_client
+    first_client, first_authenticated_data = authenticated_client
+    second_client, second_authenticated_data = second_authenticated_client
     recipes = []
 
     first_recipe = setup_data.copy()
     first_recipe['name'] = 'first_recipe'
-    first_response = client.post(
+    first_response = first_client.post(
         RECIPE_URL, first_recipe, format=FORMAT
     )
     recipes.append(first_response.data)
 
     second_recipe = setup_data.copy()
     second_recipe['name'] = 'second_recipe'
-    second_response = client.post(
+    second_recipe['tags'] = [3]
+    second_response = second_client.post(
         RECIPE_URL, second_recipe, format=FORMAT
     )
     recipes.append(second_response.data)
@@ -161,7 +149,7 @@ def create_recipes(
 
 @pytest.fixture()
 def first_recipe_id():
-    """Получаем id второго рецепта."""
+    """Получаем id первого рецепта."""
     first_recipe = Recipe.objects.order_by('id').first()
     return first_recipe.id
 
@@ -171,3 +159,26 @@ def second_recipe_id():
     """Получаем id второго рецепта."""
     second_recipe = Recipe.objects.latest('id')
     return second_recipe.id
+
+
+@pytest.fixture()
+def create_favorite(
+    create_recipes, second_authenticated_client, first_recipe_id
+):
+    """Добавляем рецепт в избранное."""
+    client, _ = second_authenticated_client
+    response = client.post(
+        f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
+    )
+    return response
+
+@pytest.fixture
+def create_shopping_cart(
+    second_authenticated_client, create_recipes, first_recipe_id
+):
+    """Добавляем рецепт в избранное."""
+    client, _ = second_authenticated_client
+    response = client.post(
+        f'{RECIPE_URL}{first_recipe_id}{SHOPPING_CART_URL}'
+    )
+    return response

@@ -2,17 +2,16 @@ import pytest
 
 from rest_framework.test import APIClient
 
+from tests.constants import CURRENT_PASSWORD, USER_URL, URL_GET_LOGIN
+
 
 @pytest.mark.django_db
 class TestUser:
 
-    URL_SIGNUP = '/api/users/'
-    URL_GET_LOGIN = '/api/auth/token/login/'
     URL_GET_LOGOUT = '/api/auth/token/logout/'
     USER_ME_URL = '/api/users/me/'
     PUT_AVATAR_URL = f'{USER_ME_URL}avatar/'
     CHANGE_PASSWORD_URL = '/api/users/set_password/'
-    CURRENT_PASSWORD = 'Qwerty321'
     NEW_PASSWORD = 'NewPassword123'
     WRONG_PASSWORD = 'WrongPassword321'
     AVATAR_IMAGE = (
@@ -49,9 +48,9 @@ class TestUser:
 
     def test_successful_login(self):
         """Проверяем возможность авторизации с корректными данными."""
-        self.client.post(self.URL_SIGNUP, self.user_data)
+        self.client.post(USER_URL, self.user_data)
         response = self.client.post(
-            self.URL_GET_LOGIN,
+            URL_GET_LOGIN,
             {
                 'email': self.user_data['email'],
                 'password': self.user_data['password']
@@ -62,9 +61,9 @@ class TestUser:
 
     def test_login_with_invalid_password(self):
         """Проверяем возможность авторизации с некорректными данными."""
-        self.client.post(self.URL_SIGNUP, self.user_data)
+        self.client.post(USER_URL, self.user_data)
         response = self.client.post(
-            self.URL_GET_LOGIN,
+            URL_GET_LOGIN,
             {'email': self.user_data['email'], 'password': self.WRONG_PASSWORD}
         )
         assert response.status_code == 401
@@ -80,9 +79,9 @@ class TestUser:
 
     def test_get_user_profile(self):
         """Проверяем возможность получения информации о пользователе. """
-        register_response = self.client.post(self.URL_SIGNUP, self.user_data)
+        register_response = self.client.post(USER_URL, self.user_data)
         user_id = register_response.data['id']
-        response = self.client.get(f'{self.URL_SIGNUP}{user_id}/')
+        response = self.client.get(f'{USER_URL}{user_id}/')
         assert response.status_code == 200
         assert response.data['username'] == self.user_data['username']
         assert response.data['email'] == self.user_data['email']
@@ -99,7 +98,7 @@ class TestUser:
         Проверяем, что неавторизованный пользователь
         не сможет получить доступ к своему профилю.
         """
-        self.client.post(self.URL_SIGNUP, self.user_data)
+        self.client.post(USER_URL, self.user_data)
         response = self.client.get(self.USER_ME_URL)
         assert response.status_code == 401
 
@@ -109,7 +108,7 @@ class TestUser:
             self.CHANGE_PASSWORD_URL,
             {
                 "new_password": self.NEW_PASSWORD,
-                "current_password": self.CURRENT_PASSWORD
+                "current_password": CURRENT_PASSWORD
             }
         )
         assert response.status_code == 204
@@ -123,7 +122,7 @@ class TestUser:
             self.CHANGE_PASSWORD_URL,
             {
                 "new_password": self.NEW_PASSWORD,
-                "current_password": self.CURRENT_PASSWORD
+                "current_password": CURRENT_PASSWORD
             }
         )
         assert response.status_code == 401

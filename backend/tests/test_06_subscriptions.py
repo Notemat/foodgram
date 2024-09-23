@@ -1,10 +1,11 @@
 import pytest
 
+from tests.constants import USER_URL
+
 
 @pytest.mark.django_db
 class TestSubscriptions:
 
-    USERS_URL = '/api/users/'
     SUBSCRIBE_URL = '/subscribe/'
     SUBSCRIPTION_URL = '/api/users/subscriptions/'
 
@@ -32,14 +33,14 @@ class TestSubscriptions:
     def create_subscription(self, second_user_id):
         """Создаем подписку на пользователя."""
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         return response
 
     def test_subscribe_user(self, second_user_id):
         """Проверяем возможность подписаться на пользователя."""
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 201
         assert response.data['username'] == (
@@ -53,7 +54,7 @@ class TestSubscriptions:
     def test_not_subscribe_himself(self, first_user_id):
         """Проверяем невозможность подписаться на самого себя."""
         response = self.authenticated_client.post(
-            f'{self.USERS_URL}{first_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{first_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 400
         assert 'errors' in response.data
@@ -63,7 +64,7 @@ class TestSubscriptions:
         Проверяем, что неавторизованный пользователь не может подписаться.
         """
         response = client.post(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data
@@ -76,7 +77,7 @@ class TestSubscriptions:
         response = create_subscription
         assert response.status_code == 201
         second_response = self.authenticated_client.post(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert second_response.status_code == 400
         assert 'errors' in second_response.data
@@ -99,7 +100,7 @@ class TestSubscriptions:
     def test_delete_subscribe(self, create_subscription, second_user_id):
         """Проверяем возможность отписаться от пользователя."""
         response = self.authenticated_client.delete(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 204
         assert response.data is None
@@ -110,7 +111,7 @@ class TestSubscriptions:
         на которого не был подписан.
         """
         response = self.authenticated_client.delete(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 400
         assert 'errors' in response.data
@@ -121,7 +122,7 @@ class TestSubscriptions:
         не может отписываться.
         """
         response = client.delete(
-            f'{self.USERS_URL}{second_user_id}{self.SUBSCRIBE_URL}'
+            f'{USER_URL}{second_user_id}{self.SUBSCRIBE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data

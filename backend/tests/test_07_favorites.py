@@ -1,11 +1,10 @@
 import pytest
 
+from tests.constants import RECIPE_URL, FAVORITE_URL
+
 
 @pytest.mark.django_db
 class TestFavorite:
-
-    RECIPES_URL = '/api/recipes/'
-    FAVORITE_URL = '/favorite/'
 
     @pytest.fixture(autouse=True)
     def setup_authenticated_client(self, authenticated_client):
@@ -27,18 +26,10 @@ class TestFavorite:
         self.second_authenticated_client, self.second_authenticated_data = \
             second_authenticated_client
 
-    @pytest.fixture
-    def create_favorite(self, create_recipes, first_recipe_id):
-        """Добавляем рецепт в избранное."""
-        response = self.second_authenticated_client.post(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
-        )
-        return response
-
     def test_create_favorite(self, create_recipes, first_recipe_id):
         """Проверяем возможность добавить рецепт в избранное."""
         response = self.second_authenticated_client.post(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert response.status_code == 201
         assert 'id' in response.data
@@ -46,15 +37,11 @@ class TestFavorite:
         assert 'image' in response.data
         assert 'cooking_time' in response.data
 
-    def test_not_twice_create_favorite(self, create_recipes, first_recipe_id):
+    def test_not_twice_create_favorite(self, create_favorite, first_recipe_id):
         """Проверяем, что нельзя добавить рецепт в избранное дважды."""
-        response = self.second_authenticated_client.post(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
-        )
-        assert response.status_code == 201
 
         second_response = self.second_authenticated_client.post(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert second_response.status_code == 400
         assert 'errors' in second_response.data
@@ -67,7 +54,7 @@ class TestFavorite:
         не может добавлять рецепты в избранное.
         """
         response = client.post(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data
@@ -75,7 +62,7 @@ class TestFavorite:
     def test_delete_favorite(self, create_favorite, first_recipe_id):
         """Проверяем возможность удалить рецепт из избранного."""
         response = self.second_authenticated_client.delete(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert response.status_code == 204
         assert response.data is None
@@ -86,7 +73,7 @@ class TestFavorite:
         если его там нет.
         """
         response = self.second_authenticated_client.delete(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert response.status_code == 400
         assert 'errors' in response.data
@@ -99,7 +86,7 @@ class TestFavorite:
         не может удалять рецепты из избранного.
         """
         response = client.delete(
-            f'{self.RECIPES_URL}{first_recipe_id}{self.FAVORITE_URL}'
+            f'{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}'
         )
         assert response.status_code == 401
         assert 'detail' in response.data

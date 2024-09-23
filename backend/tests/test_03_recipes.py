@@ -1,19 +1,12 @@
 import pytest
 
 from recipes.models import Recipe
+from tests.constants import RECIPE_URL, FORMAT, RECIPES_COUNT
 
 
 @pytest.mark.django_db
 class TestRecipe:
-    RECIPE_URL = '/api/recipes/'
-    RECIPE_IMAGE = (
-        "data:image/png;base64,"
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///"
-        "9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByx"
-        "OyYQAAAABJRU5ErkJggg=="
-    )
-    FORMAT = 'json'
-    RECIPES_COUNT = 2
+    FILTER_RESULT = 1
 
     @pytest.fixture(autouse=True)
     def setup_authenticated_client(self, authenticated_client):
@@ -62,14 +55,14 @@ class TestRecipe:
         recipe = setup_data.copy()
         recipe['name'] = 'first_recipe'
         response = self.authenticated_client.post(
-            self.RECIPE_URL, recipe, format=self.FORMAT
+            RECIPE_URL, recipe, format=FORMAT
         )
         return response
 
     def test_create_recipe(self, setup_data):
         """Тестируем создание рецепта авторизированным пользователем."""
         response = self.authenticated_client.post(
-            self.RECIPE_URL, setup_data, format=self.FORMAT
+            RECIPE_URL, setup_data, format=FORMAT
         )
         assert response.status_code == 201
         assert response.data['name'] == setup_data['name']
@@ -80,7 +73,7 @@ class TestRecipe:
         Проверяем, что навторизированный пользователь
         не может создавать рецепт.
         """
-        response = client.post(self.RECIPE_URL, setup_data, format=self.FORMAT)
+        response = client.post(RECIPE_URL, setup_data, format=FORMAT)
         assert response.status_code == 401
 
     def test_create_recipe_without_field(self, setup_data):
@@ -92,25 +85,25 @@ class TestRecipe:
             data = setup_data.copy()
             data.pop(field)
             response = self.authenticated_client.post(
-                self.RECIPE_URL, data, format=self.FORMAT
+                RECIPE_URL, data, format=FORMAT
             )
             assert response.status_code == 400
             assert 'Обязательное поле' in str(response.data[field][0])
 
     def test_get_list_recipes(self, client, create_recipes):
         """Проверяем доступность списка рецептов"""
-        response = client.get(self.RECIPE_URL)
+        response = client.get(RECIPE_URL)
         assert response.status_code == 200
         assert 'results' in response.data
 
         recipes = response.data['results']
-        assert len(recipes) == self.RECIPES_COUNT
+        assert len(recipes) == RECIPES_COUNT
 
     def test_get_recipe(self, client, create_recipes):
         """Проверяем доступность конкретного рецепта."""
         for recipe in create_recipes:
             recipe_id = recipe['id']
-            response = client.get(f'{self.RECIPE_URL}{recipe_id}/')
+            response = client.get(f'{RECIPE_URL}{recipe_id}/')
             assert response.status_code == 200
             assert response.data['id'] == recipe_id
 
@@ -118,7 +111,7 @@ class TestRecipe:
         """Проверяем возможность обновления рецепта."""
         recipe_id = create_recipe.data['id']
         response = self.authenticated_client.patch(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 200
         assert response.data['name'] == update_data['name']
@@ -127,7 +120,7 @@ class TestRecipe:
         """Проверяем, что пользователь не может обновлять чужие рецепты."""
         recipe_id = create_recipe.data['id']
         response = self.second_authenticated_client.patch(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 403
 
@@ -140,7 +133,7 @@ class TestRecipe:
         """
         recipe_id = create_recipe.data['id']
         response = client.patch(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 401
 
@@ -148,7 +141,7 @@ class TestRecipe:
         """Проверяем возможность удаления рецепта."""
         recipe_id = create_recipe.data['id']
         response = self.authenticated_client.delete(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 204
         assert response.data is None
@@ -157,7 +150,7 @@ class TestRecipe:
         """Проверяем, что пользователь не может удалить чужой рецепт."""
         recipe_id = create_recipe.data['id']
         response = self.second_authenticated_client.delete(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 403
 
@@ -170,7 +163,7 @@ class TestRecipe:
         """
         recipe_id = create_recipe.data['id']
         response = client.delete(
-            f'{self.RECIPE_URL}{recipe_id}/', update_data, format='json'
+            f'{RECIPE_URL}{recipe_id}/', update_data, format='json'
         )
         assert response.status_code == 401
 
@@ -178,7 +171,46 @@ class TestRecipe:
         """Проверяем доступность короткой ссылки на рецепт."""
         recipe_id = create_recipe.data['id']
         response = self.authenticated_client.get(
-            f'{self.RECIPE_URL}{recipe_id}/get-link/'
+            f'{RECIPE_URL}{recipe_id}/get-link/'
         )
         assert response.status_code == 200
         assert 'short-link' in response.data
+
+    def test_filter_by_favorited(self, create_favorite, first_recipe_id):
+        """Проверяем фильтрацию рецептов по избранному."""
+        response = self.second_authenticated_client.get(
+            f'{RECIPE_URL}?is_favorited=1'
+        )
+        assert response.status_code == 200
+        assert len(response.data['results']) == self.FILTER_RESULT
+        assert response.data['results'][0]['id'] == first_recipe_id
+
+    def test_filter_by_is_in_shopping_cart(
+            self, create_shopping_cart, first_recipe_id
+    ):
+        """Проверяем фильтрацию рецепта по списку покупок."""
+        response = self.second_authenticated_client.get(
+            f'{RECIPE_URL}?is_in_shopping_cart=1'
+        )
+        assert response.status_code == 200
+        assert len(response.data['results']) == self.FILTER_RESULT
+        assert response.data['results'][0]['id'] == first_recipe_id
+
+    def test_filter_by_author(self, create_recipes, first_recipe_id):
+        """Проверяем фильтрацию рецептов по автору"""
+        response = self.second_authenticated_client.get(
+            f'{RECIPE_URL}?author=1'
+        )
+        assert response.status_code == 200
+        assert len(response.data['results']) == self.FILTER_RESULT
+        assert response.data['results'][0]['id'] == first_recipe_id
+
+    def test_filter_by_tags(self, create_recipes, first_recipe_id):
+        """Проверяем фильтрацию рецептов по автору"""
+        response = self.second_authenticated_client.get(
+            f'{RECIPE_URL}?tags=tag01&tag02'
+        )
+        assert response.status_code == 200
+        print(response.data['results'])
+        assert len(response.data['results']) == self.FILTER_RESULT
+        assert response.data['results'][0]['id'] == first_recipe_id
