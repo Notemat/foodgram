@@ -7,5 +7,5 @@ class RecipeReadShortSerializer(ModelSerializer):
     """Сериализатор для короткого чтения рецепта."""
 
     class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ("id", "name", "image", "cooking_time")
         model = Recipe

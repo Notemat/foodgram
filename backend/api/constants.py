@@ -13,6 +13,6 @@ TITLE_FONT_SIZE = 16
 # Размер шрифта текста ингредиентов
 TEXT_FONT_SIZE = 12
 # Истинно
-TRUE = '1'
+TRUE = "1"
 # Ложно
-FALSE = '0'
+FALSE = "0"

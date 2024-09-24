@@ -14,19 +14,19 @@ class ShoppingCartFavoriteSerializerMixin(serializers.ModelSerializer):
     recipe = RecipeReadShortSerializer(read_only=True)
 
     class Meta:
-        fields = ('recipe',)
+        fields = ("recipe",)
 
     def create_recipe_and_user(self, model_class, validated_data):
         """Переопределение метода create для корректного сохранения объекта."""
-        user = self.context['request'].user
-        recipe = self.context['view'].kwargs.get('recipe_id')
+        user = self.context["request"].user
+        recipe = self.context["view"].kwargs.get("recipe_id")
         recipe_instance = get_object_or_404(Recipe, id=recipe)
         return model_class.objects.create(user=user, recipe=recipe_instance)
 
     def validate_recipe_and_user(self, model_class, error_message):
         """Валидация подписки на пользователя."""
-        user = self.context['request'].user
-        recipe = self.context['view'].kwargs.get('recipe_id')
+        user = self.context["request"].user
+        recipe = self.context["view"].kwargs.get("recipe_id")
         if model_class.objects.filter(
             user=user, recipe=get_object_or_404(Recipe, id=recipe)
         ).exists():
@@ -36,7 +36,7 @@ class ShoppingCartFavoriteSerializerMixin(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Возвращаем в ответе словарь объектов."""
         data = super().to_representation(instance)
-        return data['recipe']
+        return data["recipe"]
 
 
 class ShoppingCartFavoriteViewSetMixin(
@@ -44,7 +44,7 @@ class ShoppingCartFavoriteViewSetMixin(
 ):
     """Миксин для вьюсетов списка покупок и избранного."""
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def create_from_mixin(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -54,21 +54,21 @@ class ShoppingCartFavoriteViewSetMixin(
 
     def perform_create_from_mixin(self, serializer):
         """Сохраняем автора и рецепт."""
-        recipe_id = self.kwargs.get('recipe_id')
+        recipe_id = self.kwargs.get("recipe_id")
         recipe = get_object_or_404(Recipe, id=recipe_id)
         print(f"Saving favorite: user={self.request.user}, recipe={recipe}")
         serializer.save(user=self.request.user, recipe=recipe)
 
     def delete_from_mixin(self, request, model_class, *args, **kwargs):
         """Удаляем объект из списка."""
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        recipe = get_object_or_404(Recipe, id=self.kwargs["recipe_id"])
         is_in_shopping_cart = model_class.objects.filter(
             user=self.request.user, recipe=recipe
         )
         if not is_in_shopping_cart:
             return Response(
-                {'errors': 'Рецепт еще не добавлен добавлен.'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Рецепт еще не добавлен добавлен."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         is_in_shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

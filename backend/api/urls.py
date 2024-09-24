@@ -1,31 +1,35 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import (FavoriteViewSet, IngredientViewSet, RecipeViewSet,
-                       RedirectToRecipeView, ShoppingCartViewSet, TagViewset,
-                       download_shopping_cart)
+from api.views import (
+    FavoriteViewSet,
+    IngredientViewSet,
+    RecipeViewSet,
+    ShoppingCartViewSet,
+    TagViewset,
+    download_shopping_cart,
+)
 
 v1_router = DefaultRouter()
-v1_router.register('recipes', RecipeViewSet, basename='recipes')
-v1_router.register('tags', TagViewset, basename='tags')
-v1_router.register('ingredients', IngredientViewSet, basename='ingredients')
+v1_router.register("recipes", RecipeViewSet, basename="recipes")
+v1_router.register("tags", TagViewset, basename="tags")
+v1_router.register("ingredients", IngredientViewSet, basename="ingredients")
 v1_router.register(
-    r'recipes/(?P<recipe_id>\d+)/shopping_cart',
+    r"recipes/(?P<recipe_id>\d+)/shopping_cart",
     ShoppingCartViewSet,
-    basename='shopping_cart'
+    basename="shopping_cart",
 )
 v1_router.register(
-    r'recipes/(?P<recipe_id>\d+)/favorite',
-    FavoriteViewSet,
-    basename='favorite'
+    r"recipes/(?P<recipe_id>\d+)/favorite",
+    FavoriteViewSet, basename="favorite"
 )
 
 
 urlpatterns = [
     path(
-        'recipes/download_shopping_cart/',
+        "recipes/download_shopping_cart/",
         download_shopping_cart,
-        name='download_shopping_cart'
+        name="download_shopping_cart",
     ),
-    path('', include(v1_router.urls))
+    path("", include(v1_router.urls)),
 ]

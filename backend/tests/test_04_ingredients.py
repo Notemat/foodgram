@@ -6,7 +6,7 @@ from recipes.models import Ingredient
 @pytest.mark.django_db
 class TestIngredient:
 
-    INGREDIENT_URL = '/api/ingredients/'
+    INGREDIENT_URL = "/api/ingredients/"
     COUNT_ING_NAME_OBJECTS = 2
 
     @pytest.fixture(autouse=True)
@@ -24,19 +24,19 @@ class TestIngredient:
 
     def test_get_ingredient(self, client, create_ingredients):
         """Проверяем доступность отдельного ингредиента."""
-        ingredient = Ingredient.objects.latest('id')
+        ingredient = Ingredient.objects.latest("id")
         ingredient_id = ingredient.id
-        response = client.get(f'{self.INGREDIENT_URL}{ingredient_id}/')
+        response = client.get(f"{self.INGREDIENT_URL}{ingredient_id}/")
         assert response.status_code == 200
-        assert 'name' in response.data
+        assert "name" in response.data
 
     def test_search_ingredient_by_partial_name(self, client):
         """Проверяем поиск ингредиента по начальной части названия."""
-        search_term = 'ing'
-        response = client.get(f'{self.INGREDIENT_URL}?search={search_term}')
+        search_term = "ing"
+        response = client.get(f"{self.INGREDIENT_URL}?search={search_term}")
 
         assert response.status_code == 200
         results = response.data
         assert len(results) == self.COUNT_ING_NAME_OBJECTS
-        assert results[0]['name'].startswith(search_term)
-        assert results[1]['name'].startswith(search_term)
+        assert results[0]["name"].startswith(search_term)
+        assert results[1]["name"].startswith(search_term)

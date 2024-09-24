@@ -1,11 +1,11 @@
 # Адрес пользователя.
-USER_URL = '/api/users/'
+USER_URL = "/api/users/"
 # Адрес получения токена.
-URL_GET_LOGIN = '/api/auth/token/login/'
+URL_GET_LOGIN = "/api/auth/token/login/"
 # Пароль пользователя
-CURRENT_PASSWORD = 'Qwerty321'
+CURRENT_PASSWORD = "Qwerty321"
 # Адрес рецепта.
-RECIPE_URL = '/api/recipes/'
+RECIPE_URL = "/api/recipes/"
 # Изображение рецепта.
 RECIPE_IMAGE = (
     "data:image/png;base64,"
@@ -14,10 +14,10 @@ RECIPE_IMAGE = (
     "OyYQAAAABJRU5ErkJggg=="
 )
 # Формат выдачи.
-FORMAT = 'json'
+FORMAT = "json"
 # Количество сгенерированных рецептов.
 RECIPES_COUNT = 2
 # Адрес избранного.
-FAVORITE_URL = '/favorite/'
+FAVORITE_URL = "/favorite/"
 # Адрес списка покупок.
-SHOPPING_CART_URL = '/shopping_cart/'
+SHOPPING_CART_URL = "/shopping_cart/"

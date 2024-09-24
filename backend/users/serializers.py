@@ -10,8 +10,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
 
 from recipes.serializers import RecipeReadShortSerializer
-from users.constants import (EMAIL_MAX_LENGTH, NAME_MAX_LENGTH,
-                             USERNAME_MAX_LENGTH)
+from users.constants import (
+    EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
+)
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import Subscribe, User
 
@@ -20,10 +21,10 @@ class Base64ImageField(serializers.ImageField):
     """Сериализатор для декодирования изображений."""
 
     def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split('base64,')
-            ext = format.split('/')[-1].split(';')[0]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+        if isinstance(data, str) and data.startswith("data:image"):
+            format, imgstr = data.split("base64,")
+            ext = format.split("/")[-1].split(";")[0]
+            data = ContentFile(base64.b64decode(imgstr), name="temp." + ext)
         return super().to_internal_value(data)
 
 
@@ -38,19 +39,23 @@ class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            'email', 'id', 'username',
-            'first_name', 'last_name', 'is_subscribed',
-            'avatar',
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "avatar",
         )
         extra_kwargs = {
-            'is_subscribed': {'read_only': True},
+            "is_subscribed": {"read_only": True},
         }
         model = User
 
     def get_is_subscribed(self, obj):
         """Проверяем, подписан ли пользователь."""
 
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             return Subscribe.objects.filter(
                 user=user, subscription=obj
@@ -61,7 +66,7 @@ class CustomUserSerializer(ValidateUsernameMixin, serializers.ModelSerializer):
         """Валидация имени пользователя."""
 
         if User.objects.filter(username=value).exists():
-            raise ValidationError('Данный username уже используется.')
+            raise ValidationError("Данный username уже используется.")
         return super().validate_username(value)
 
 
@@ -70,15 +75,15 @@ class CustomAuthTokenSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
+        email = attrs.get("email")
+        password = attrs.get("password")
 
         user = authenticate(username=email, password=password)
 
         if not user:
-            raise AuthenticationFailed('Неверные учетные данные')
+            raise AuthenticationFailed("Неверные учетные данные")
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
 
 
@@ -88,14 +93,12 @@ class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=True)
 
     class Meta:
-        fields = ('avatar',)
+        fields = ("avatar",)
         model = User
 
     def validate(self, data):
-        if 'avatar' not in data:
-            raise serializers.ValidationError(
-                {'avatar': 'Обязательное поле'}
-            )
+        if "avatar" not in data:
+            raise serializers.ValidationError({"avatar": "Обязательное поле"})
         return data
 
 
@@ -106,17 +109,17 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(required=True)
 
     class Meta:
-        fields = ('new_password', 'current_password')
+        fields = ("new_password", "current_password")
         model = User
 
     def validate(self, data):
         """Проверяем старый и новый пароли."""
-        user = self.context['request'].user
-        if not user.check_password(data['current_password']):
+        user = self.context["request"].user
+        if not user.check_password(data["current_password"]):
             raise serializers.ValidationError(
-                {'current_password': 'Текущий пароль неверный.'}
+                {"current_password": "Текущий пароль неверный."}
             )
-        validate_password(data['new_password'], user)
+        validate_password(data["new_password"], user)
         return data
 
 
@@ -127,17 +130,21 @@ class RegisterDataSerializer(
 
     email = serializers.EmailField(
         max_length=EMAIL_MAX_LENGTH,
-        validators=[UniqueValidator(
-            queryset=User.objects.all(),
-            message="Этот email уже используется."
-        )]
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Этот email уже используется."
+            )
+        ],
     )
     username = serializers.CharField(
         max_length=USERNAME_MAX_LENGTH,
-        validators=[UniqueValidator(
-            queryset=User.objects.all(),
-            message="Имя пользователя уже занято."
-        )]
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Имя пользователя уже занято."
+            )
+        ],
     )
     first_name = serializers.CharField(
         max_length=NAME_MAX_LENGTH, required=True
@@ -149,13 +156,18 @@ class RegisterDataSerializer(
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', 'password', 'first_name', 'last_name',
+            "email",
+            "id",
+            "username",
+            "password",
+            "first_name",
+            "last_name",
         )
 
     def create(self, validated_data):
         """Создание или получение пользователя."""
-        password = validated_data['password']
-        validated_data.pop('password')
+        password = validated_data["password"]
+        validated_data.pop("password")
         user = User(**validated_data)
         user.set_password(password)
         user.save()
@@ -164,7 +176,7 @@ class RegisterDataSerializer(
     def to_representation(self, instance):
         """Скрываем пароль из ответа."""
         representation = super().to_representation(instance)
-        representation.pop('password', None)
+        representation.pop("password", None)
         return representation
 
 
@@ -172,30 +184,30 @@ class SubscribeSerializer(serializers.ModelSerializer):
     """Сериализатор для записи модели подписок."""
 
     recipes = RecipeReadShortSerializer(
-        many=True, source='subscription.recipes', read_only=True
+        many=True, source="subscription.recipes", read_only=True
     )
     subscription = CustomUserSerializer(read_only=True)
     recipes_count = serializers.IntegerField(
-        source='subscription.recipes.count', read_only=True
+        source="subscription.recipes.count", read_only=True
     )
 
     class Meta:
-        fields = ('subscription', 'recipes', 'recipes_count')
+        fields = ("subscription", "recipes", "recipes_count")
         model = Subscribe
 
     def validate(self, data):
         """Валидация подписки на пользователя."""
-        user = self.context['request'].user
-        subscription = self.context['view'].kwargs.get('user_id')
+        user = self.context["request"].user
+        subscription = self.context["view"].kwargs.get("user_id")
         if user == get_object_or_404(User, id=subscription):
             raise serializers.ValidationError(
-                {'errors': 'Нельзя подписываться на самого себя.'}
+                {"errors": "Нельзя подписываться на самого себя."}
             )
         if Subscribe.objects.filter(
             user=user, subscription=get_object_or_404(User, id=subscription)
         ).exists():
             raise serializers.ValidationError(
-                {'errors': 'Нельзя подписываться на одного человека дважды.'}
+                {"errors": "Нельзя подписываться на одного человека дважды."}
             )
 
         return data
@@ -204,34 +216,34 @@ class SubscribeSerializer(serializers.ModelSerializer):
         """
         Получаем ограниченное количество рецептов подписанных пользователей.
         """
-        recipe_limit = self.context.get('recipe_limit')
+        recipe_limit = self.context.get("recipe_limit")
         recipes_queryset = obj.subscription.recipes.all()
         if recipe_limit:
-            recipes_queryset = recipes_queryset[:int(recipe_limit)]
+            recipes_queryset = recipes_queryset[: int(recipe_limit)]
 
         return RecipeReadShortSerializer(recipes_queryset, many=True).data
 
     def to_representation(self, instance):
         """Возвращаем в ответе словарь объектов с учетом лимита рецептов."""
         data = super().to_representation(instance)
-        request = self.context.get('request')
-        recipes_limit = request.query_params.get('recipes_limit')
+        request = self.context.get("request")
+        recipes_limit = request.query_params.get("recipes_limit")
 
         if recipes_limit:
             try:
                 recipes_limit = int(recipes_limit)
                 if recipes_limit < 0:
                     raise ValidationError(
-                        'recipes_limit должно быть больше нуля.'
+                        "recipes_limit должно быть больше нуля."
                     )
             except ValueError:
-                raise ValidationError('recipes_limit должно быть числом.')
+                raise ValidationError("recipes_limit должно быть числом.")
 
-            data['recipes'] = data['recipes'][:recipes_limit]
+            data["recipes"] = data["recipes"][:recipes_limit]
 
         return {
-            **data['subscription'],
-            'is_subscribed': True,
-            'recipes': data['recipes'],
-            'recipes_count': data['recipes_count']
+            **data["subscription"],
+            "is_subscribed": True,
+            "recipes": data["recipes"],
+            "recipes_count": data["recipes_count"],
         }

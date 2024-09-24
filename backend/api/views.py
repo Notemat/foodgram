@@ -5,41 +5,66 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    SAFE_METHODS,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
-from api.constants import (FALSE, LINE_SPACING, START_Y, TEXT_FONT_SIZE,
-                           TEXT_X, TITLE_FONT_SIZE, TITLE_X, TITLE_Y, TRUE)
+from api.constants import (
+    FALSE,
+    LINE_SPACING,
+    START_Y,
+    TEXT_FONT_SIZE,
+    TEXT_X,
+    TITLE_FONT_SIZE,
+    TITLE_X,
+    TITLE_Y,
+    TRUE,
+)
 from api.mixins import ShoppingCartFavoriteViewSetMixin
 from api.permissions import AuthorOrReadOnlyPermission
-from api.serializers import (FavoriteSerializer, IngredientSerializer,
-                             RecipeReadSerializer, RecipeWriteSerializer,
-                             ShoppingCartSerializer, TagSerializer)
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from api.serializers import (
+    FavoriteSerializer,
+    IngredientSerializer,
+    RecipeReadSerializer,
+    RecipeWriteSerializer,
+    ShoppingCartSerializer,
+    TagSerializer,
+)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def download_shopping_cart(request):
     """Функция для выгрузки списка покупок pdf-документом."""
     ingredients = get_aggregatted_ingridients(request.user)
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="shoppinglist.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="shoppinglist.pdf"'
     p = canvas.Canvas(response)
-    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+    pdfmetrics.registerFont(TTFont("DejaVuSans", "DejaVuSans.ttf"))
 
-    p.setFont('DejaVuSans', TITLE_FONT_SIZE)
-    p.drawString(TITLE_X, TITLE_Y, 'Список покупок')
+    p.setFont("DejaVuSans", TITLE_FONT_SIZE)
+    p.drawString(TITLE_X, TITLE_Y, "Список покупок")
 
-    p.setFont('DejaVuSans', TEXT_FONT_SIZE)
+    p.setFont("DejaVuSans", TEXT_FONT_SIZE)
     y = START_Y
     for ingredient, data in ingredients.items():
         p.drawString(
-            TEXT_X, y, f"{ingredient} ({data['measurement_unit']}) "
-                       f"— {data['amount']}"
+            TEXT_X,
+            y,
+            f"{ingredient} ({data['measurement_unit']}) "
+            f"— {data['amount']}",
         )
         y -= LINE_SPACING
 
@@ -58,15 +83,16 @@ def get_aggregatted_ingridients(user):
         for recipe_ingredient in recipe_ingredients:
             ingredient = recipe_ingredient.ingredient
             if ingredient.name in ingredients:
-                ingredients[ingredient.name]['amount'] += (
+                ingredients[ingredient.name]["amount"] += (
                     recipe_ingredient.amount
                 )
             else:
                 ingredients[ingredient.name] = {
-                    'amount': recipe_ingredient.amount,
-                    'measurement_unit': ingredient.measurement_unit
+                    "amount": recipe_ingredient.amount,
+                    "measurement_unit": ingredient.measurement_unit,
                 }
     return ingredients
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
@@ -78,11 +104,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Переопределяем queryset для возможности сортировки выдачи."""
         queryset = Recipe.objects.all()
 
-        author = self.request.query_params.get('author')
-        tags = self.request.query_params.getlist('tags')
-        is_favorited = self.request.query_params.get('is_favorited')
+        author = self.request.query_params.get("author")
+        tags = self.request.query_params.getlist("tags")
+        is_favorited = self.request.query_params.get("is_favorited")
         is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart'
+            "is_in_shopping_cart"
         )
 
         if author:
@@ -107,9 +133,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         """Добавляем контекст для сериализатора."""
-        return {
-            'request': self.request
-        }
+        return {"request": self.request}
 
     def get_serializer_class(self):
         """Выбираем соответствующий запросу сериализатор."""
@@ -119,7 +143,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Выбираем пермишен для обновления или удаления рецепта."""
-        if self.request.method == 'PATCH' or self.request.method == 'DELETE':
+        if self.request.method == "PATCH" or self.request.method == "DELETE":
             permission_classes = (AuthorOrReadOnlyPermission,)
             return [permission() for permission in permission_classes]
         permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -136,14 +160,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Используем сериализатор для чтения для отображения ответа.
         """
         serializer = RecipeWriteSerializer(
-            data=request.data,
-            context={'request': self.request}
+            data=request.data, context={"request": self.request}
         )
         if serializer.is_valid():
             self.perform_create(serializer)
             response_serializer = RecipeReadSerializer(
-                serializer.instance,
-                context={'request': self.request})
+                serializer.instance, context={"request": self.request}
+            )
             return Response(
                 response_serializer.data, status=status.HTTP_201_CREATED
             )
@@ -158,24 +181,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         Для ответа - сериализатор для чтения.
         """
-        partial = request.method == 'PATCH'
+        partial = request.method == "PATCH"
         instance = self.get_object()
         serializer = RecipeWriteSerializer(
-            instance,
-            data=request.data,
-            partial=partial,
-            context={'request': request}
+            instance, data=request.data,
+            partial=partial, context={"request": request}
         )
         if serializer.is_valid():
             self.perform_update(serializer)
             response_serializer = RecipeReadSerializer(
-                serializer.instance,
-                context={'request': request}
+                serializer.instance, context={"request": request}
             )
             return Response(response_serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['get'], url_path='get-link')
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
         """Получаем короткую ссылку на рецепт."""
         recipe = self.get_object()
@@ -185,8 +205,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe.short_link = short_link
             recipe.save()
 
-        link = request.build_absolute_uri(f'/r/{short_link}')
-        return Response({'short-link': link}, status=status.HTTP_200_OK)
+        link = request.build_absolute_uri(f"/r/{short_link}")
+        return Response({"short-link": link}, status=status.HTTP_200_OK)
 
 
 class TagViewset(viewsets.ReadOnlyModelViewSet):
@@ -204,12 +224,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
-    ordering_fields = ('id',)
-    search_fields = ('^name',)
+    ordering_fields = ("id",)
+    search_fields = ("^name",)
 
     def get_queryset(self):
         queryset = Ingredient.objects.all()
-        name = self.request.query_params.get('name')
+        name = self.request.query_params.get("name")
         if name is not None:
             queryset = queryset.filter(name=name)
         return queryset
@@ -220,7 +240,7 @@ class ShoppingCartViewSet(ShoppingCartFavoriteViewSetMixin):
 
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         return self.create_from_mixin(request, *args, **kwargs)

@@ -7,12 +7,12 @@ from tests.constants import CURRENT_PASSWORD, URL_GET_LOGIN, USER_URL
 @pytest.mark.django_db
 class TestUser:
 
-    URL_GET_LOGOUT = '/api/auth/token/logout/'
-    USER_ME_URL = '/api/users/me/'
-    PUT_AVATAR_URL = f'{USER_ME_URL}avatar/'
-    CHANGE_PASSWORD_URL = '/api/users/set_password/'
-    NEW_PASSWORD = 'NewPassword123'
-    WRONG_PASSWORD = 'WrongPassword321'
+    URL_GET_LOGOUT = "/api/auth/token/logout/"
+    USER_ME_URL = "/api/users/me/"
+    PUT_AVATAR_URL = f"{USER_ME_URL}avatar/"
+    CHANGE_PASSWORD_URL = "/api/users/set_password/"
+    NEW_PASSWORD = "NewPassword123"
+    WRONG_PASSWORD = "WrongPassword321"
     AVATAR_IMAGE = (
         "data:image/png;base64,"
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///"
@@ -28,11 +28,11 @@ class TestUser:
         """
         self.client = APIClient()
         self.user_data = {
-            'email': 'test_user_01@yandex.ru',
-            'username': 'test_user_01',
-            'first_name': 'Вася',
-            'last_name': 'Иванов',
-            'password': 'Qwerty123'
+            "email": "test_user_01@yandex.ru",
+            "username": "test_user_01",
+            "first_name": "Вася",
+            "last_name": "Иванов",
+            "password": "Qwerty123",
         }
 
     @pytest.fixture(autouse=True)
@@ -42,8 +42,9 @@ class TestUser:
 
         Сохраняем значения как атрибуты.
         """
-        self.authenticated_client, self.authenticated_data = \
+        self.authenticated_client, self.authenticated_data = (
             authenticated_client
+        )
 
     def test_successful_login(self):
         """Проверяем возможность авторизации с корректными данными."""
@@ -51,22 +52,25 @@ class TestUser:
         response = self.client.post(
             URL_GET_LOGIN,
             {
-                'email': self.user_data['email'],
-                'password': self.user_data['password']
-            }
+                "email": self.user_data["email"],
+                "password": self.user_data["password"]
+            },
         )
         assert response.status_code == 200
-        assert 'auth_token' in response.data
+        assert "auth_token" in response.data
 
     def test_login_with_invalid_password(self):
         """Проверяем возможность авторизации с некорректными данными."""
         self.client.post(USER_URL, self.user_data)
         response = self.client.post(
             URL_GET_LOGIN,
-            {'email': self.user_data['email'], 'password': self.WRONG_PASSWORD}
+            {
+                "email": self.user_data["email"],
+                "password": self.WRONG_PASSWORD
+            },
         )
         assert response.status_code == 401
-        assert 'detail' in response.data
+        assert "detail" in response.data
 
     def test_successful_logout(self):
         """Проверяем возможность удаления токена с корректными данными."""
@@ -77,20 +81,20 @@ class TestUser:
         assert failed_response.status_code == 401
 
     def test_get_user_profile(self):
-        """Проверяем возможность получения информации о пользователе. """
+        """Проверяем возможность получения информации о пользователе."""
         register_response = self.client.post(USER_URL, self.user_data)
-        user_id = register_response.data['id']
-        response = self.client.get(f'{USER_URL}{user_id}/')
+        user_id = register_response.data["id"]
+        response = self.client.get(f"{USER_URL}{user_id}/")
         assert response.status_code == 200
-        assert response.data['username'] == self.user_data['username']
-        assert response.data['email'] == self.user_data['email']
+        assert response.data["username"] == self.user_data["username"]
+        assert response.data["email"] == self.user_data["email"]
 
     def test_get_me_profile(self):
-        """Проверяем возможность получения информации о своем профиле. """
+        """Проверяем возможность получения информации о своем профиле."""
         response = self.authenticated_client.get(self.USER_ME_URL)
         assert response.status_code == 200
-        assert response.data['username'] == self.authenticated_data['username']
-        assert response.data['email'] == self.authenticated_data['email']
+        assert response.data["username"] == self.authenticated_data["username"]
+        assert response.data["email"] == self.authenticated_data["email"]
 
     def test_not_authenticated_get_me_profile(self):
         """
@@ -102,13 +106,13 @@ class TestUser:
         assert response.status_code == 401
 
     def test_update_password(self):
-        """"Проверяем возможность изменения пароля пользователя."""
+        """ "Проверяем возможность изменения пароля пользователя."""
         response = self.authenticated_client.post(
             self.CHANGE_PASSWORD_URL,
             {
                 "new_password": self.NEW_PASSWORD,
                 "current_password": CURRENT_PASSWORD
-            }
+            },
         )
         assert response.status_code == 204
 
@@ -122,17 +126,14 @@ class TestUser:
             {
                 "new_password": self.NEW_PASSWORD,
                 "current_password": CURRENT_PASSWORD
-            }
+            },
         )
         assert response.status_code == 401
 
     def test_add_avatar(self):
         """Проверяем возможность добавления аватара."""
         response = self.authenticated_client.put(
-            self.PUT_AVATAR_URL,
-            {
-                "avatar": self.AVATAR_IMAGE
-            }
+            self.PUT_AVATAR_URL, {"avatar": self.AVATAR_IMAGE}
         )
         assert response.status_code == 200
 
@@ -141,24 +142,25 @@ class TestUser:
         Проверяем, что неавторизированный пользователь
         не сможет добавить аватар.
         """
-        response = self.client.put(
-            self.PUT_AVATAR_URL,
-            {
-                "avatar": self.AVATAR_IMAGE
-            }
-        )
+        response = self.client.put(self.PUT_AVATAR_URL, {
+            "avatar": self.AVATAR_IMAGE
+        })
         assert response.status_code == 401
 
     def test_delete_avatar(self):
         """Проверяем возможность удаления аватара."""
-        response = self.authenticated_client.delete(self.PUT_AVATAR_URL,)
+        response = self.authenticated_client.delete(
+            self.PUT_AVATAR_URL,
+        )
         assert response.status_code == 204
-        assert 'message' in response.data
+        assert "message" in response.data
 
     def test_not_authenticated_cant_delete_avatar(self):
         """
         Проверяем, что неавторизованный пользователь
         не может удалять аватар.
         """
-        response = self.client.delete(self.PUT_AVATAR_URL,)
+        response = self.client.delete(
+            self.PUT_AVATAR_URL,
+        )
         assert response.status_code == 401
