@@ -1,46 +1,44 @@
 version: '3.3'
 
 volumes:
-  pg_data:
-  static:
-  media:
+  pg_data_production:
+  static_volume:
+  media_volume:
 
 services:
   db:
     image: postgres:13.10
-    env_file: .env.development
+    env_file: .env.production
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data_production:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 20s
+      timeout: 50s
       retries: 5
-
   backend:
     container_name: foodgram-backend
-    build: ../backend/
-    env_file: .env.development
+    image: notemat/foodgram_backend
+    env_file: .env.production
     volumes:
-      - static:/backend_static
-      - media:/app/media
+      - static_volume:/backend_static
+      - media_volume:/app/media
     depends_on:
       db:
         condition: service_healthy
-
   frontend:
     container_name: foodgram-front
-    build: ../frontend
-    env_file: .env.development
+    image: notemat/foodgram_frontend
+    env_file: .env.production
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static:/frontend_static
-
+      - static_volume:/frontend_static
   gateway:
     container_name: foodgram-nginx
-    image: ./infra/nginx
+    image: notemat/foodgram_gateway
+    env_file: .env.production
     ports:
-      - 80:80
+      - 9000:80
     depends_on:
       - backend
       - frontend

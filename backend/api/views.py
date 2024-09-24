@@ -1,6 +1,4 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.views import View
 from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -69,14 +67,6 @@ def get_aggregatted_ingridients(user):
                     'measurement_unit': ingredient.measurement_unit
                 }
     return ingredients
-
-
-class RedirectToRecipeView(View):
-    """Вью для редиректа по короткой ссылке."""
-    def get(self, request, short_link):
-        recipe = get_object_or_404(Recipe, short_link=short_link)
-        return redirect(f'/recipes/{recipe.id}/')
-
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""

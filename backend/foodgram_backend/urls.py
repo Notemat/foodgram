@@ -4,7 +4,6 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from api.views import RedirectToRecipeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,11 +14,7 @@ urlpatterns = [
     ),
     path('api/', include('api.urls')),
     path('api/', include('users.urls')),
-    path(
-        'r/<str:short_link>/',
-        RedirectToRecipeView.as_view(),
-        name='short_link_redirect'
-    ),
+    path('s/', include('recipes.urls')),
 ]
 
 if settings.DEBUG:
