@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 environment = os.getenv("ENVIRONMENT", "development")
 
-env_path = os.path.join(os.path.dirname(__file__), "../../infra/.env")
+# env_path = os.path.join(os.path.dirname(__file__), "../../infra/.env")
 
 if environment == "production":
     load_dotenv(".env.production")
