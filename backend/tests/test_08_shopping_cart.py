@@ -29,7 +29,7 @@ class TestShoppingCart:
             second_authenticated_client
         )
 
-    def test_get_shopping_cart_list(self, create_shopping_cart):
+    def test_01_get_shopping_cart_list(self, create_shopping_cart):
         """Проверяем возможность скачать список покупок."""
         response = self.second_authenticated_client.get(
             self.DOWNLOAD_SHOPPING_CART
@@ -38,7 +38,7 @@ class TestShoppingCart:
 
         assert response["Content-Type"] == "application/pdf"
 
-    def test_unauthorized_user_cant_get_shopping_cart_list(
+    def test_02_unauthorized_user_cant_get_shopping_cart_list(
         self, client, create_shopping_cart
     ):
         """
@@ -49,7 +49,7 @@ class TestShoppingCart:
         assert response.status_code == 401
         assert "detail" in response.data
 
-    def test_create_shopping_cart(self, create_recipes, first_recipe_id):
+    def test_03_create_shopping_cart(self, create_recipes, first_recipe_id):
         """Проверяем возможность добавить рецепт в избранное."""
         response = self.second_authenticated_client.post(
             f"{RECIPE_URL}{first_recipe_id}{SHOPPING_CART_URL}"
@@ -60,7 +60,7 @@ class TestShoppingCart:
         assert "image" in response.data
         assert "cooking_time" in response.data
 
-    def test_not_twice_create_shopping_cart(
+    def test_04_not_twice_create_shopping_cart(
         self, create_recipes, first_recipe_id
     ):
         """Проверяем, что нельзя добавить рецепт в избранное дважды."""
@@ -75,7 +75,7 @@ class TestShoppingCart:
         assert second_response.status_code == 400
         assert "errors" in second_response.data
 
-    def test_unauthorized_user_cant_create_recipe(
+    def test_05_unauthorized_user_cant_create_recipe(
         self, client, create_recipes, first_recipe_id
     ):
         """
@@ -88,7 +88,9 @@ class TestShoppingCart:
         assert response.status_code == 401
         assert "detail" in response.data
 
-    def test_delete_shopping_cart(self, create_shopping_cart, first_recipe_id):
+    def test_06_delete_shopping_cart(
+        self, create_shopping_cart, first_recipe_id
+    ):
         """Проверяем возможность удалить рецепт из избранного."""
         response = self.second_authenticated_client.delete(
             f"{RECIPE_URL}{first_recipe_id}{SHOPPING_CART_URL}"
@@ -96,7 +98,7 @@ class TestShoppingCart:
         assert response.status_code == 204
         assert response.data is None
 
-    def test_cant_delete_not_shopping_cart(
+    def test_07_cant_delete_not_shopping_cart(
         self, create_recipes, first_recipe_id
     ):
         """
@@ -109,7 +111,7 @@ class TestShoppingCart:
         assert response.status_code == 400
         assert "errors" in response.data
 
-    def test_unauthorized_user_cant_delete_shopping_cart(
+    def test_08_unauthorized_user_cant_delete_shopping_cart(
         self, client, create_recipes, first_recipe_id
     ):
         """

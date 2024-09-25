@@ -27,7 +27,7 @@ class TestFavorite:
             second_authenticated_client
         )
 
-    def test_create_favorite(self, create_recipes, first_recipe_id):
+    def test_01_create_favorite(self, create_recipes, first_recipe_id):
         """Проверяем возможность добавить рецепт в избранное."""
         response = self.second_authenticated_client.post(
             f"{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}"
@@ -38,7 +38,9 @@ class TestFavorite:
         assert "image" in response.data
         assert "cooking_time" in response.data
 
-    def test_not_twice_create_favorite(self, create_favorite, first_recipe_id):
+    def test_02_not_twice_create_favorite(
+        self, create_favorite, first_recipe_id
+    ):
         """Проверяем, что нельзя добавить рецепт в избранное дважды."""
 
         second_response = self.second_authenticated_client.post(
@@ -47,7 +49,7 @@ class TestFavorite:
         assert second_response.status_code == 400
         assert "errors" in second_response.data
 
-    def test_unauthorized_user_cant_create_recipe(
+    def test_03_unauthorized_user_cant_create_recipe(
         self, client, create_recipes, first_recipe_id
     ):
         """
@@ -58,7 +60,7 @@ class TestFavorite:
         assert response.status_code == 401
         assert "detail" in response.data
 
-    def test_delete_favorite(self, create_favorite, first_recipe_id):
+    def test_04_delete_favorite(self, create_favorite, first_recipe_id):
         """Проверяем возможность удалить рецепт из избранного."""
         response = self.second_authenticated_client.delete(
             f"{RECIPE_URL}{first_recipe_id}{FAVORITE_URL}"
@@ -66,7 +68,9 @@ class TestFavorite:
         assert response.status_code == 204
         assert response.data is None
 
-    def test_cant_delete_not_favorite(self, create_recipes, first_recipe_id):
+    def test_05_cant_delete_not_favorite(
+        self, create_recipes, first_recipe_id
+    ):
         """
         Проверяем, что нельзя удалить рецепт из избранного,
         если его там нет.
@@ -77,7 +81,7 @@ class TestFavorite:
         assert response.status_code == 400
         assert "errors" in response.data
 
-    def test_unauthorized_user_cant_delete_favorite(
+    def test_06_unauthorized_user_cant_delete_favorite(
         self, client, create_recipes, first_recipe_id
     ):
         """

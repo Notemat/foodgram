@@ -13,7 +13,7 @@ class TestIngredient:
         """Вызываем фикстуру ингредиентов."""
         self.ingredients_data = create_ingredients
 
-    def test_get_list_ingredients(self, client):
+    def test_01_get_list_ingredients(self, client):
         """Проверяем доступность списка ингредиентов."""
         ingredients_count = Ingredient.objects.count()
         response = client.get(self.INGREDIENT_URL)
@@ -21,7 +21,7 @@ class TestIngredient:
         response_count = len(response.data)
         assert response_count == ingredients_count
 
-    def test_get_ingredient(self, client, create_ingredients):
+    def test_02_get_ingredient(self, client, create_ingredients):
         """Проверяем доступность отдельного ингредиента."""
         ingredient = Ingredient.objects.latest("id")
         ingredient_id = ingredient.id
@@ -29,7 +29,7 @@ class TestIngredient:
         assert response.status_code == 200
         assert "name" in response.data
 
-    def test_search_ingredient_by_partial_name(self, client):
+    def test_03_search_ingredient_by_partial_name(self, client):
         """Проверяем поиск ингредиента по начальной части названия."""
         search_term = "ing"
         response = client.get(f"{self.INGREDIENT_URL}?search={search_term}")

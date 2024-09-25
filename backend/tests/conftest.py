@@ -93,8 +93,11 @@ def create_ingredients():
         {"name": "ingredient02", "measurement_unit": "measurement_unit02"},
         {"name": "other_ingredient", "measurement_unit": "measurement_unit03"},
     ]
+    ingredients = []
     for ingredient in ingredients_data:
-        Ingredient.objects.get_or_create(**ingredient)
+        obj, created = Ingredient.objects.get_or_create(**ingredient)
+        ingredients.append(obj)
+    return ingredients
 
 
 @pytest.fixture()
@@ -105,16 +108,21 @@ def create_tags():
         {"name": "tag02", "slug": "tag02"},
         {"name": "tag03", "slug": "tag03"},
     ]
+    tags = []
     for tag in tags_data:
-        Tag.objects.get_or_create(**tag)
+        obj, created = Tag.objects.get_or_create(**tag)
+        tags.append(obj)
+    return tags
 
 
 @pytest.fixture()
-def setup_data():
+def setup_data(create_ingredients, create_tags):
     """Данные для создания рецепта."""
+    ingredients = create_ingredients
+    tags = create_tags
     return {
-        "ingredients": [{"id": 1, "amount": 10}],
-        "tags": [1, 2],
+        "ingredients": [{"id": ingredients[0].id, "amount": 10}],
+        "tags": [tags[0].id, tags[1].id],
         "image": RECIPE_IMAGE,
         "name": "string01",
         "text": "string01",
@@ -142,23 +150,27 @@ def create_recipes(
 
     second_recipe = setup_data.copy()
     second_recipe["name"] = "second_recipe"
-    second_recipe["tags"] = [3]
+    second_recipe["tags"] = [create_tags[2].id]
     second_response = second_client.post(
         RECIPE_URL, second_recipe, format=FORMAT
     )
     recipes.append(second_response.data)
+    if first_response.status_code != 201:
+        print(f"Ошибка при создании первого рецепта: {first_response.data}")
+    if second_response.status_code != 201:
+        print(f"Ошибка при создании второго рецепта: {second_response.data}")
     return recipes
 
 
 @pytest.fixture()
-def first_recipe_id():
+def first_recipe_id(create_recipes):
     """Получаем id первого рецепта."""
     first_recipe = Recipe.objects.order_by("id").first()
     return first_recipe.id
 
 
 @pytest.fixture()
-def second_recipe_id():
+def second_recipe_id(create_recipes):
     """Получаем id второго рецепта."""
     second_recipe = Recipe.objects.latest("id")
     return second_recipe.id

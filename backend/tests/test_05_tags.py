@@ -12,7 +12,7 @@ class TestTags:
         """Вызываем фикстуру ингредиентов."""
         self.tags_data = create_tags
 
-    def test_get_list_tags(self, client):
+    def test_01_get_list_tags(self, client):
         """Проверяем доступность списка ингредиентов."""
         tags_count = Tag.objects.count()
         response = client.get(self.TAGS_URL)
@@ -20,7 +20,7 @@ class TestTags:
         response_count = len(response.data)
         assert response_count == tags_count
 
-    def test_get_tag(self, client, create_tags):
+    def test_02_get_tag(self, client, create_tags):
         """Проверяем доступность отдельного ингредиента."""
         tag = Tag.objects.latest("id")
         tag_id = tag.id

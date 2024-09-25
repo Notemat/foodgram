@@ -58,7 +58,7 @@ class TestUser:
         assert response.status_code == 200
         assert "auth_token" in response.data
 
-    def test_login_with_invalid_password(self):
+    def test_01_login_with_invalid_password(self):
         """Проверяем возможность авторизации с некорректными данными."""
         self.client.post(USER_URL, self.user_data)
         response = self.client.post(
@@ -71,7 +71,7 @@ class TestUser:
         assert response.status_code == 401
         assert "detail" in response.data
 
-    def test_successful_logout(self):
+    def test_02_successful_logout(self):
         """Проверяем возможность удаления токена с корректными данными."""
         logout_response = self.authenticated_client.post(self.URL_GET_LOGOUT)
         assert logout_response.status_code == 204
@@ -79,7 +79,7 @@ class TestUser:
         failed_response = self.client.get(self.USER_ME_URL)
         assert failed_response.status_code == 401
 
-    def test_get_user_profile(self):
+    def test_03_get_user_profile(self):
         """Проверяем возможность получения информации о пользователе."""
         register_response = self.client.post(USER_URL, self.user_data)
         user_id = register_response.data["id"]
@@ -88,14 +88,14 @@ class TestUser:
         assert response.data["username"] == self.user_data["username"]
         assert response.data["email"] == self.user_data["email"]
 
-    def test_get_me_profile(self):
+    def test_04_get_me_profile(self):
         """Проверяем возможность получения информации о своем профиле."""
         response = self.authenticated_client.get(self.USER_ME_URL)
         assert response.status_code == 200
         assert response.data["username"] == self.authenticated_data["username"]
         assert response.data["email"] == self.authenticated_data["email"]
 
-    def test_not_authenticated_get_me_profile(self):
+    def test_05_not_authenticated_get_me_profile(self):
         """
         Проверяем, что неавторизованный пользователь
         не сможет получить доступ к своему профилю.
@@ -104,7 +104,7 @@ class TestUser:
         response = self.client.get(self.USER_ME_URL)
         assert response.status_code == 401
 
-    def test_update_password(self):
+    def test_06_update_password(self):
         """ "Проверяем возможность изменения пароля пользователя."""
         response = self.authenticated_client.post(
             self.CHANGE_PASSWORD_URL,
@@ -115,7 +115,7 @@ class TestUser:
         )
         assert response.status_code == 204
 
-    def test_not_authenticated_cant_update_password(self):
+    def test_07_not_authenticated_cant_update_password(self):
         """
         Проверяем, что неавторизированный пользователь
         не сможет сменить пароль другого пользователя.
@@ -129,14 +129,14 @@ class TestUser:
         )
         assert response.status_code == 401
 
-    def test_add_avatar(self):
+    def test_08_add_avatar(self):
         """Проверяем возможность добавления аватара."""
         response = self.authenticated_client.put(
             self.PUT_AVATAR_URL, {"avatar": self.AVATAR_IMAGE}
         )
         assert response.status_code == 200
 
-    def test_not_authenticated_cant_add_avatar(self):
+    def test_09_not_authenticated_cant_add_avatar(self):
         """
         Проверяем, что неавторизированный пользователь
         не сможет добавить аватар.
@@ -146,7 +146,7 @@ class TestUser:
         })
         assert response.status_code == 401
 
-    def test_delete_avatar(self):
+    def test_10_delete_avatar(self):
         """Проверяем возможность удаления аватара."""
         response = self.authenticated_client.delete(
             self.PUT_AVATAR_URL,
@@ -154,7 +154,7 @@ class TestUser:
         assert response.status_code == 204
         assert "message" in response.data
 
-    def test_not_authenticated_cant_delete_avatar(self):
+    def test_11_not_authenticated_cant_delete_avatar(self):
         """
         Проверяем, что неавторизованный пользователь
         не может удалять аватар.
