@@ -27,7 +27,10 @@ else:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-9eofn)48=gnrx&d=_tdw#na7xa=i$gzdq31fjr@=ei+(n=#q6)"
+)
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ["true", "1", "t"]
 

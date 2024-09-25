@@ -39,8 +39,5 @@
       "last 1 safari version"
     ]
   },
-  "jest": {
-    "testEnvironment": "jsdom"
-  },
   "proxy": "http://web:8000/"
 }
