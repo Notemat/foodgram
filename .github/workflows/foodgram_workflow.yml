@@ -30,6 +30,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8==6.0.0 flake8-isort==6.0.0
           pip install -r ./backend/requirements.txt
+      - name: Create test database
+        run: psql -U django_user -c "CREATE DATABASE foodgram_test;"
       - name: Test with flake8 and django tests
         env:
           POSTGRES_USER: django_user
@@ -73,10 +75,6 @@ jobs:
         run: |
           cd frontend/
           npm ci
-      # - name: Test frontend
-      #   run: |
-      #     cd frontend/
-      #     npm run test
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
     runs-on: ubuntu-latest
