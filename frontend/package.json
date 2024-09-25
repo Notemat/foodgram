@@ -40,10 +40,7 @@
     ]
   },
   "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.js"
-    ]
+    "testEnvironment": "jsdom"
   },
   "proxy": "http://web:8000/"
 }
