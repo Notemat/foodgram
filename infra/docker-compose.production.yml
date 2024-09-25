@@ -35,7 +35,7 @@ services:
       - static_volume:/frontend_static
   gateway:
     container_name: foodgram-nginx
-    image: notemat/foodgram_gateway
+    image: notemat/foodgram_nginx
     env_file: .env.production
     ports:
       - 9000:80
