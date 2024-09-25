@@ -25,7 +25,9 @@ if environment == "production":
 else:
     load_dotenv(os.path.join(BASE_DIR, "infra", ".env.development"))
 
-SECRET_KEY = os.getenv("SECRET_KEY", "")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "test_secret_key_134953019fkeaf35nwowcld335gg"
+)
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ["true", "1", "t"]
 
