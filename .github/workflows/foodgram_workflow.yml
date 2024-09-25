@@ -13,7 +13,7 @@ jobs:
         image: postgres:13.10
         env:
           POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: django_passwod
+          POSTGRES_PASSWORD: django_password
           POSTGRES_DB: django
         ports:
           - 5432:5432
@@ -30,12 +30,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8==6.0.0 flake8-isort==6.0.0
           pip install -r ./backend/requirements.txt
-      - name: Create test database
-        run: psql -U django_user -c "CREATE DATABASE foodgram_test;"
       - name: Test with flake8 and django tests
         env:
           POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: django_passwod
+          POSTGRES_PASSWORD: django_password
           POSTGRES_DB: django
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
