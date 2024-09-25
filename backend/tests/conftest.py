@@ -1,4 +1,6 @@
+import os
 import pytest
+from dotenv import load_dotenv
 from recipes.models import Ingredient, Recipe, Tag, User
 from rest_framework.test import APIClient
 from tests.constants import (
@@ -11,6 +13,14 @@ from tests.constants import (
     URL_GET_LOGIN,
     USER_URL,
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_env():
+    env_path = os.path.join(
+        os.path.dirname(__file__), '../infra/.env.production'
+    )
+    load_dotenv(env_path)
 
 
 @pytest.fixture()
