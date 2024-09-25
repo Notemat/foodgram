@@ -1,5 +1,4 @@
 import pytest
-
 from recipes.models import Recipe
 from tests.constants import FORMAT, RECIPE_URL, RECIPES_COUNT
 

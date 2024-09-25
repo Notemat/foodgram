@@ -1,5 +1,4 @@
 import pytest
-
 from tests.constants import USER_URL
 
 

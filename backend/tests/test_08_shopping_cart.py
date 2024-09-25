@@ -1,5 +1,4 @@
 import pytest
-
 from tests.constants import RECIPE_URL, SHOPPING_CART_URL
 
 

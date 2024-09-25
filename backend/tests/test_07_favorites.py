@@ -1,5 +1,4 @@
 import pytest
-
 from tests.constants import FAVORITE_URL, RECIPE_URL
 
 

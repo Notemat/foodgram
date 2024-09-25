@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+
 from rest_framework import status, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -7,7 +8,6 @@ from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from users.models import Subscribe, User
 from users.permissions import PostOrReadOnly
 from users.serializers import (

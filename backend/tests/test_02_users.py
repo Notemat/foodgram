@@ -1,6 +1,5 @@
 import pytest
 from rest_framework.test import APIClient
-
 from tests.constants import CURRENT_PASSWORD, URL_GET_LOGIN, USER_URL
 
 

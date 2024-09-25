@@ -1,7 +1,6 @@
 import pytest
-from rest_framework.test import APIClient
-
 from recipes.models import Ingredient, Recipe, Tag, User
+from rest_framework.test import APIClient
 from tests.constants import (
     CURRENT_PASSWORD,
     FAVORITE_URL,
