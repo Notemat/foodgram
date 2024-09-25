@@ -29,7 +29,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8==6.0.0 flake8-isort==6.0.0
-          pip install -r ./backend/requirements.txte
+          pip install -r ./backend/requirements.txt
       - name: Test with flake8 and django tests
         env:
           POSTGRES_USER: django_user
@@ -109,7 +109,7 @@ jobs:
       - name: Push to Docker
         uses: docker/build-push-action@v4
         with:
-          context: ./infra/
+          context: ./infra/nginx/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
   deploy:
