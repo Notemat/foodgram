@@ -18,19 +18,14 @@ from dotenv import load_dotenv
 
 environment = os.getenv("ENVIRONMENT", "development")
 
-env_path = os.path.join(os.path.dirname(__file__), "../../infra/.env")
-
-if environment == "production":
-    load_dotenv(".env.production")
-else:
-    load_dotenv(".env.development")
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    ""
-)
+if environment == "production":
+    load_dotenv(os.path.join(BASE_DIR, "infra", ".env.production"))
+else:
+    load_dotenv(os.path.join(BASE_DIR, "infra", ".env.development"))
+
+SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ["true", "1", "t"]
 
