@@ -49,4 +49,4 @@ services:
       - media:/var/www/kittygram/media
       - ../docs/:/usr/share/nginx/html/api/docs/
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
+      - ../infra/nginx/docs/:/var/www/foodgram/docs/
