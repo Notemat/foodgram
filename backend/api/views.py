@@ -205,7 +205,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe.short_link = short_link
             recipe.save()
 
-        link = request.build_absolute_uri(f"{short_link}")
+        link = request.build_absolute_uri(f"/s/{short_link}")
         return Response({"short-link": link}, status=status.HTTP_200_OK)
 
 

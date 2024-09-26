@@ -31,5 +31,5 @@ urlpatterns = [
         download_shopping_cart,
         name="download_shopping_cart",
     ),
-    path("s/", include(v1_router.urls)),
+    path("", include(v1_router.urls)),
 ]
