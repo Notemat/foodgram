@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import HttpResponse
 
 from api.constants import (
@@ -231,7 +232,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = Ingredient.objects.all()
         name = self.request.query_params.get("name")
         if name is not None:
-            queryset = queryset.filter(name=name)
+            queryset = queryset.filter(Q(name__icontains=name))
         return queryset
 
 
