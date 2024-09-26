@@ -13,5 +13,4 @@ urlpatterns = [
         RedirectToRecipeView.as_view(),
         name="short_link_redirect",
     ),
-    
 ]

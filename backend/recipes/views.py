@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
+
+from recipes.models import Recipe
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from recipes.models import Recipe
 
 
 class RedirectToRecipeView(View):
