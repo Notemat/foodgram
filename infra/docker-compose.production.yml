@@ -44,5 +44,5 @@ services:
       - frontend
     volumes:
       - static_volume:/staticfiles/
-      - media_volume:/var/www/kittygram/media
+      - media_volume:/app/media/
       - static_volume:/usr/share/nginx/html/api/docs/
