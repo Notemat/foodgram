@@ -38,7 +38,7 @@ services:
     image: notemat/foodgram_nginx
     env_file: .env.production
     ports:
-      - "80:80"
+      - "8000:80"
     depends_on:
       - backend
       - frontend
