@@ -45,4 +45,4 @@ services:
     volumes:
       - static_volume:/staticfiles/
       - media_volume:/var/www/kittygram/media
-      - static:/usr/share/nginx/html/api/docs/
+      - static_volume:/usr/share/nginx/html/api/docs/
