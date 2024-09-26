@@ -34,7 +34,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import (
     SAFE_METHODS,
     IsAuthenticated,
@@ -194,6 +194,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
             return Response(response_serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["get"], url_path="get-link")
+    def get_link(self, request, pk=None):
+        """Получаем короткую ссылку на рецепт."""
+        recipe = self.get_object()
+        short_link = recipe.short_link
+        if not short_link:
+            short_link = recipe.generate_short_link()
+            recipe.short_link = short_link
+            recipe.save()
+
+        link = request.build_absolute_uri(f"{short_link}")
+        return Response({"short-link": link}, status=status.HTTP_200_OK)
 
 
 class TagViewset(viewsets.ReadOnlyModelViewSet):
