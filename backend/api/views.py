@@ -103,7 +103,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Переопределяем queryset для возможности сортировки выдачи."""
-        queryset = Recipe.objects.all()
+        queryset = Recipe.objects.all().order_by('created_at')
 
         author = self.request.query_params.get("author")
         tags = self.request.query_params.getlist("tags")
