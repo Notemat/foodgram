@@ -11,7 +11,9 @@ from rest_framework.validators import UniqueValidator
 
 from recipes.serializers import RecipeReadShortSerializer
 from users.constants import (
-    EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
+    EMAIL_MAX_LENGTH,
+    NAME_MAX_LENGTH,
+    USERNAME_MAX_LENGTH,
 )
 from users.mixins import ValidateEmailMixin, ValidateUsernameMixin
 from users.models import Subscribe, User
