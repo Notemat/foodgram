@@ -146,6 +146,11 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+CSRF_TRUSTED_ORIGINS = ['https://foodgram.work.gd']
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 # Настройки для почты
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
