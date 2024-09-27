@@ -1,5 +1,4 @@
 import pytest
-from recipes.models import Ingredient, Recipe, Tag, User
 from rest_framework.test import APIClient
 from tests.constants import (
     CURRENT_PASSWORD,
@@ -11,6 +10,8 @@ from tests.constants import (
     URL_GET_LOGIN,
     USER_URL,
 )
+
+from recipes.models import Ingredient, Recipe, Tag, User
 
 
 @pytest.fixture()
