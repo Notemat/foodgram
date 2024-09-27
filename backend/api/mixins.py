@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
 
-from recipes.models import Recipe
-from recipes.serializers import RecipeReadShortSerializer
 from rest_framework import serializers, status, viewsets
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from recipes.models import Recipe
+from recipes.serializers import RecipeReadShortSerializer
 
 
 class ShoppingCartFavoriteSerializerMixin(serializers.ModelSerializer):
@@ -56,7 +57,6 @@ class ShoppingCartFavoriteViewSetMixin(
         """Сохраняем автора и рецепт."""
         recipe_id = self.kwargs.get("recipe_id")
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        print(f"Saving favorite: user={self.request.user}, recipe={recipe}")
         serializer.save(user=self.request.user, recipe=recipe)
 
     def delete_from_mixin(self, request, model_class, *args, **kwargs):

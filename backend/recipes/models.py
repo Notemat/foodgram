@@ -124,6 +124,11 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(verbose_name="Количество")
 
+    class Meta:
+        ordering = ["ingredient"]
+        verbose_name = "Ингредиент рецепта"
+        verbose_name_plural = "Ингредиенты рецепта"
+
     def __str__(self) -> str:
         return (
             f"{self.ingredient} - {self.amount} "
@@ -132,10 +137,15 @@ class RecipeIngredient(models.Model):
 
 
 class RecipeTag(models.Model):
-    """Связанная модель рецепта и тага."""
+    """Связанная модель рецепта и тега."""
 
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     tags = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ["tags"]
+        verbose_name = "Тег рецепта"
+        verbose_name_plural = "Теги рецепта"
 
     def __str__(self) -> str:
         return f"{self.recipe} {self.tags}"
@@ -147,6 +157,7 @@ class ShoppingCartFavoriteBaseModel(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ["recipe"]
         abstract = True
         constraints = [
             models.UniqueConstraint(
@@ -166,6 +177,7 @@ class ShoppingCart(ShoppingCartFavoriteBaseModel):
     )
 
     class Meta:
+        ordering = ["user"]
         verbose_name = "Список покупок"
         verbose_name_plural = "Списки покупок"
 
@@ -181,5 +193,6 @@ class Favorite(ShoppingCartFavoriteBaseModel):
     )
 
     class Meta:
+        ordering = ["user"]
         verbose_name = "Избранное"
         verbose_name_plural = "Избранные"

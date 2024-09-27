@@ -1,4 +1,5 @@
 from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from api.views import (
     FavoriteViewSet,
@@ -8,7 +9,6 @@ from api.views import (
     TagViewset,
     download_shopping_cart,
 )
-from rest_framework.routers import DefaultRouter
 
 v1_router = DefaultRouter()
 v1_router.register("recipes", RecipeViewSet, basename="recipes")

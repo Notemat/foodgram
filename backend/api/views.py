@@ -1,5 +1,17 @@
 from django.db.models import Q
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import (
+    SAFE_METHODS,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
+from rest_framework.response import Response
 
 from api.constants import (
     FALSE,
@@ -22,7 +34,6 @@ from api.serializers import (
     ShoppingCartSerializer,
     TagSerializer,
 )
-from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -31,17 +42,6 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
-from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import (
-    SAFE_METHODS,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
-from rest_framework.response import Response
 
 
 @api_view(["GET"])
@@ -75,7 +75,7 @@ def download_shopping_cart(request):
 
 
 def get_aggregatted_ingridients(user):
-    """Получаем ингридиенты для списка покупок."""
+    """Получаем ингредиенты для списка покупок."""
     recipies = Recipe.objects.filter(shoppingcart__user=user)
     ingredients = {}
 

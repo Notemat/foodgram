@@ -1,6 +1,7 @@
 import re
 
 from django.forms import ValidationError
+from rest_framework import serializers
 
 from api.mixins import ShoppingCartFavoriteSerializerMixin
 from recipes.models import (
@@ -11,7 +12,6 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from rest_framework import serializers
 from users.serializers import Base64ImageField, CustomUserSerializer
 
 
