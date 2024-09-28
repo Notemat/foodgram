@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.models import Q
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -38,7 +40,6 @@ from recipes.models import (
     Favorite,
     Ingredient,
     Recipe,
-    RecipeIngredient,
     ShoppingCart,
     Tag,
 )
@@ -75,24 +76,24 @@ def download_shopping_cart(request):
 
 
 def get_aggregatted_ingridients(user):
-    """Получаем ингредиенты для списка покупок."""
-    recipies = Recipe.objects.filter(is_in_shopping_cart__user=user)
-    ingredients = {}
+    """Получаем ингридиенты для списка покупок."""
+
+    recipies = Recipe.objects.filter(
+        is_in_shopping_cart__user=user
+    ).prefetch_related('recipeingredient_set')
+
+    ingredients = defaultdict(lambda: {"amount": 0, "measurement_unit": ""})
 
     for recipe in recipies:
-        recipe_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
-        for recipe_ingredient in recipe_ingredients:
+        for recipe_ingredient in recipe.recipeingredient_set.all():
             ingredient = recipe_ingredient.ingredient
-            if ingredient.name in ingredients:
-                ingredients[ingredient.name]["amount"] += (
-                    recipe_ingredient.amount
+            ingredients[ingredient.name]["amount"] += recipe_ingredient.amount
+            if not ingredients[ingredient.name]["measurement_unit"]:
+                ingredients[ingredient.name]["measurement_unit"] = (
+                    ingredient.measurement_unit
                 )
-            else:
-                ingredients[ingredient.name] = {
-                    "amount": recipe_ingredient.amount,
-                    "measurement_unit": ingredient.measurement_unit,
-                }
-    return ingredients
+
+    return dict(ingredients)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -163,15 +164,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = RecipeWriteSerializer(
             data=request.data, context={"request": self.request}
         )
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            response_serializer = RecipeReadSerializer(
-                serializer.instance, context={"request": self.request}
-            )
-            return Response(
-                response_serializer.data, status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        response_serializer = RecipeReadSerializer(
+            serializer.instance, context={"request": self.request}
+        )
+        return Response(
+            response_serializer.data, status=status.HTTP_201_CREATED
+        )
 
     def perform_update(self, serializer):
         serializer.save()
@@ -188,13 +188,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             instance, data=request.data,
             partial=partial, context={"request": request}
         )
-        if serializer.is_valid():
-            self.perform_update(serializer)
-            response_serializer = RecipeReadSerializer(
-                serializer.instance, context={"request": request}
-            )
-            return Response(response_serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        response_serializer = RecipeReadSerializer(
+            serializer.instance, context={"request": request}
+        )
+        return Response(response_serializer.data)
 
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
