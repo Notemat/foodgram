@@ -3,6 +3,7 @@ import re
 from django.forms import ValidationError
 from rest_framework import serializers
 
+from api.constants import MAX_AMOUNT, MIN_AMOUNT
 from api.mixins import ShoppingCartFavoriteSerializerMixin
 from recipes.models import (
     Favorite,
@@ -44,6 +45,11 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
         source="ingredient",
         required=True,
+    )
+    amount = serializers.IntegerField(
+        required=True,
+        min_value=MIN_AMOUNT,
+        max_value=MAX_AMOUNT
     )
 
     class Meta:
