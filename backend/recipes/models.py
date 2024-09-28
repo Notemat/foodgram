@@ -117,7 +117,8 @@ class RecipeIngredient(models.Model):
     """Связанная модель рецепта и ингридиента."""
 
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+        Recipe, on_delete=models.CASCADE,
+        verbose_name="Рецепт ингредиентов", related_name='recipe_ingredients'
     )
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, verbose_name="Ингридиент"
@@ -154,7 +155,9 @@ class RecipeTag(models.Model):
 class ShoppingCartFavoriteBaseModel(models.Model):
     """Базовый класс моделей списка покупок и избранного."""
 
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE
+    )
 
     class Meta:
         ordering = ["recipe"]
@@ -175,6 +178,9 @@ class ShoppingCart(ShoppingCartFavoriteBaseModel):
         related_name="shopping_cart",
         verbose_name="Пользователь",
     )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='in_shopping_carts'
+    )
 
     class Meta:
         ordering = ["user"]
@@ -190,6 +196,9 @@ class Favorite(ShoppingCartFavoriteBaseModel):
         on_delete=models.CASCADE,
         related_name="favorite",
         verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='favorited_by'
     )
 
     class Meta:
