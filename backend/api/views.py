@@ -36,13 +36,7 @@ from api.serializers import (
     ShoppingCartSerializer,
     TagSerializer,
 )
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
 @api_view(["GET"])
