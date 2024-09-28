@@ -96,7 +96,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     author = CustomUserSerializer(many=False, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = IngredientSerializer(
+    ingredients = RecipeIngredientSerializer(
         many=True, read_only=True, source='recipe_ingredients'
     )
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -119,13 +119,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        return user.is_authenticated and obj.favorited_by.filter(
+        return user.is_authenticated and obj.is_favorite.filter(
             user=user
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        return user.is_authenticated and obj.in_shopping_carts.filter(
+        return user.is_authenticated and obj.is_in_shopping_cart.filter(
             user=user
         ).exists()
 
@@ -204,7 +204,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def add_ingredients_to_recipe(self, recipe, ingredients_data):
         """Добавляем ингредиенты в рецепт."""
         recipe_ingredients = [
-            RecipeIngredient.objects.create(
+            RecipeIngredient(
                 recipe=recipe,
                 ingredient=ingredient_data["ingredient"],
                 amount=ingredient_data["amount"],
@@ -241,6 +241,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             instance.tags.set(tags_data)
 
         if ingredients_data is not None:
-            instance.recipe_ingredients.all.delete()
+            instance.recipe_ingredients.all().delete()
             self.add_ingredients_to_recipe(instance, ingredients_data)
         return instance

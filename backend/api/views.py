@@ -76,7 +76,7 @@ def download_shopping_cart(request):
 
 def get_aggregatted_ingridients(user):
     """Получаем ингредиенты для списка покупок."""
-    recipies = Recipe.objects.filter(shoppingcart__user=user)
+    recipies = Recipe.objects.filter(is_in_shopping_cart__user=user)
     ingredients = {}
 
     for recipe in recipies:
@@ -122,14 +122,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             if is_favorited:
                 if is_favorited == TRUE:
-                    queryset = queryset.filter(favorite__user=user)
+                    queryset = queryset.filter(is_favorite__user=user)
                 elif is_favorited == FALSE:
-                    queryset = queryset.exclude(favorite__user=user)
+                    queryset = queryset.exclude(is_favorite__user=user)
             if is_in_shopping_cart:
                 if is_in_shopping_cart == TRUE:
-                    queryset = queryset.filter(shoppingcart__user=user)
+                    queryset = queryset.filter(is_in_shopping_cart__user=user)
                 elif is_in_shopping_cart == FALSE:
-                    queryset = queryset.exclude(shoppingcart__user=user)
+                    queryset = queryset.exclude(is_in_shopping_cart__user=user)
         return queryset
 
     def get_serializer_context(self):

@@ -38,7 +38,7 @@ services:
 
   gateway:
     container_name: foodgram-nginx
-    image: ./infra/nginx/
+    build: ./nginx/
     ports:
       - "80:80"
     depends_on:

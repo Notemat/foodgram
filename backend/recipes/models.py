@@ -129,6 +129,11 @@ class RecipeIngredient(models.Model):
         ordering = ["ingredient"]
         verbose_name = "Ингредиент рецепта"
         verbose_name_plural = "Ингредиенты рецепта"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "ingredient"], name="unique_ingredients"
+            )
+        ]
 
     def __str__(self) -> str:
         return (
@@ -155,10 +160,6 @@ class RecipeTag(models.Model):
 class ShoppingCartFavoriteBaseModel(models.Model):
     """Базовый класс моделей списка покупок и избранного."""
 
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE
-    )
-
     class Meta:
         ordering = ["recipe"]
         abstract = True
@@ -179,7 +180,7 @@ class ShoppingCart(ShoppingCartFavoriteBaseModel):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='in_shopping_carts'
+        Recipe, on_delete=models.CASCADE, related_name='is_in_shopping_cart'
     )
 
     class Meta:
@@ -198,7 +199,7 @@ class Favorite(ShoppingCartFavoriteBaseModel):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='favorited_by'
+        Recipe, on_delete=models.CASCADE, related_name='is_favorite'
     )
 
     class Meta:
