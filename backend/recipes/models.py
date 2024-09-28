@@ -10,6 +10,7 @@ from recipes.constants import (
     MAX_LENGTH_TAGS,
     MAX_LENGTH_UNIT,
 )
+from recipes.validators import amount_validator
 from users.models import User
 
 
@@ -39,15 +40,16 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         "Tag", through="RecipeTag", verbose_name="Тэг"
     )
-    cooking_time = models.PositiveIntegerField(
-        verbose_name="Время приготовления"
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name="Время приготовления",
+        validators=[amount_validator]
     )
     pub_date = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата публикации"
     )
     short_link = models.CharField(
         max_length=MAX_LENGTH_LINK, unique=True,
-        blank=True, null=True
+        blank=True, null=True, verbose_name="Короткая ссылка"
     )
 
     class Meta:
@@ -123,7 +125,9 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, verbose_name="Ингридиент"
     )
-    amount = models.PositiveIntegerField(verbose_name="Количество")
+    amount = models.PositiveSmallIntegerField(
+        verbose_name="Количество", validators=[amount_validator]
+    )
 
     class Meta:
         ordering = ["ingredient"]

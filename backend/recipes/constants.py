@@ -8,3 +8,7 @@ MAX_LENGTH_TAGS = 32
 MAX_LENGTH_INGREDIENT = 128
 # Максимальная длина единицы измерения
 MAX_LENGTH_UNIT = 64
+# Минимальное количество
+MIN_AMOUNT = 1
+# Максимальное количество
+MAX_AMOUNT = 32000
