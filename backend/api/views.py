@@ -80,12 +80,12 @@ def get_aggregatted_ingridients(user):
 
     recipies = Recipe.objects.filter(
         is_in_shopping_cart__user=user
-    ).prefetch_related('recipeingredient_set')
+    ).prefetch_related('recipe_ingredients')
 
     ingredients = defaultdict(lambda: {"amount": 0, "measurement_unit": ""})
 
     for recipe in recipies:
-        for recipe_ingredient in recipe.recipeingredient_set.all():
+        for recipe_ingredient in recipe.recipe_ingredients.all():
             ingredient = recipe_ingredient.ingredient
             ingredients[ingredient.name]["amount"] += recipe_ingredient.amount
             if not ingredients[ingredient.name]["measurement_unit"]:
