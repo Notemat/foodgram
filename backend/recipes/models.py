@@ -53,7 +53,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["-pub_date"]
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
 
@@ -120,7 +120,7 @@ class RecipeIngredient(models.Model):
 
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
-        verbose_name="Рецепт ингредиентов", related_name='recipe_ingredients'
+        verbose_name="Рецепт ингредиентов", related_name="recipe_ingredients"
     )
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, verbose_name="Ингридиент"
@@ -184,7 +184,7 @@ class ShoppingCart(ShoppingCartFavoriteBaseModel):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='is_in_shopping_cart'
+        Recipe, on_delete=models.CASCADE, related_name="is_in_shopping_cart"
     )
 
     class Meta:
@@ -203,7 +203,7 @@ class Favorite(ShoppingCartFavoriteBaseModel):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='is_favorite'
+        Recipe, on_delete=models.CASCADE, related_name="is_favorite"
     )
 
     class Meta:

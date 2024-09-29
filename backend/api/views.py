@@ -43,10 +43,10 @@ from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 @permission_classes((IsAuthenticated,))
 def download_shopping_cart(request):
     """Функция для выгрузки списка покупок pdf-документом."""
-    ingredients = get_aggregatted_ingridients(request.user)
+    ingredients = get_aggregatted_ingredients(request.user)
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="shoppinglist.pdf"'
+    response["Content-Disposition"] = "attachment; filename='shoppinglist.pdf'"
     p = canvas.Canvas(response)
     pdfmetrics.registerFont(TTFont("DejaVuSans", "DejaVuSans.ttf"))
 
@@ -69,12 +69,12 @@ def download_shopping_cart(request):
     return response
 
 
-def get_aggregatted_ingridients(user):
-    """Получаем ингридиенты для списка покупок."""
+def get_aggregatted_ingredients(user):
+    """Получаем ингредиенты для списка покупок."""
 
     recipies = Recipe.objects.filter(
         is_in_shopping_cart__user=user
-    ).prefetch_related('recipe_ingredients')
+    ).prefetch_related("recipe_ingredients")
 
     ingredients = defaultdict(lambda: {"amount": 0, "measurement_unit": ""})
 
@@ -93,13 +93,11 @@ def get_aggregatted_ingridients(user):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
 
-    queryset = Recipe.objects.all()
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
     def get_queryset(self):
         """Переопределяем queryset для возможности сортировки выдачи."""
-        queryset = Recipe.objects.all().order_by('-pub_date')
-
+        queryset = Recipe.objects.all()
         author = self.request.query_params.get("author")
         tags = self.request.query_params.getlist("tags")
         is_favorited = self.request.query_params.get("is_favorited")
@@ -212,7 +210,7 @@ class TagViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет для ингридиентов."""
+    """Вьюсет для ингредиентов."""
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer

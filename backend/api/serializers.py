@@ -97,7 +97,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(many=False, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     ingredients = RecipeIngredientSerializer(
-        many=True, read_only=True, source='recipe_ingredients'
+        many=True, read_only=True, source="recipe_ingredients"
     )
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -118,13 +118,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user
+        user = self.context["request"].user
         return user.is_authenticated and obj.is_favorite.filter(
             user=user
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
+        user = self.context["request"].user
         return user.is_authenticated and obj.is_in_shopping_cart.filter(
             user=user
         ).exists()
@@ -161,7 +161,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Общая валидация полей."""
-        request = self.context.get("request")
+        request = self.context["request"]
 
         if request.method == "PATCH":
             if "tags" not in attrs:
@@ -182,13 +182,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
         unique_ingredients = set()
 
-        for index, ingredient in enumerate(ingredients):
-            if ingredient["ingredient"] in unique_ingredients:
+        for ingredient_data in ingredients:
+            ingredient = ingredient_data["ingredient"]
+            if ingredient in unique_ingredients:
                 raise serializers.ValidationError(
                     "Ингредиенты не должны повторяться"
                 )
             else:
-                unique_ingredients.add(ingredient["ingredient"])
+                unique_ingredients.add(ingredient)
         return ingredients
 
     def validate_tags(self, tags):
